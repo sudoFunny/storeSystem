@@ -11,3 +11,10 @@ A store system with features like; point of sale system, manager panel, sale log
 	CREATE USER 'testUser'@'localhost' IDENTIFIED BY 'password';
 	GRANT ALL PRIVILEGES ON salesData.* TO 'testUser'@'localhost';
 	```
+
+
+# **To Do**
+- [ ] Change how we get "orderId":
+	- Add new column "completed" to salesData
+	- Remove reliance on RecordClass.php by getting orderId from completed field
+	- Remove https://github.com/sudoFunny/storeSystem/blob/main/includes/RecordClass.php
