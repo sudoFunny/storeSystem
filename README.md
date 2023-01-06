@@ -29,6 +29,8 @@ A store system with features like; point of sale system, manager panel, sale log
 	CREATE USER 'testUser'@'localhost' IDENTIFIED BY 'password';
 	GRANT ALL PRIVILEGES ON salesData.* TO 'testUser'@'localhost';
 	```
+- You will also need an item config
+	- Go to the [Manager Panel](http://localhost/managerPanel/) and upload this [sample item config](https://github.com/sudoFunny/storeSystem/blob/main/sampleItemConfig.json)... and now you're ready to go to the [order taker page](http://localhost/orderTaker/)
 <br>
 
 ## In Progress
