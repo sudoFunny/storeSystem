@@ -35,9 +35,6 @@ A store system with features like; point of sale system, manager panel, sale log
 - [ ] Get sales data and display as table:
 	- Feature found in manager panel
 
-- [ ] Create a general config file:
-	- Make a general config file for mysql user information
-
 - [ ] Change how we get "orderId":
 	- Remove reliance on "RecordClass.php" by getting "orderId" from sales data's "completed" field
 	- Remove [RecordClass.php](https://github.com/sudoFunny/storeSystem/blob/main/includes/RecordClass.php)
@@ -47,6 +44,9 @@ A store system with features like; point of sale system, manager panel, sale log
 <br>
 
 ## Planned for the Future
+- [ ] Create a general config file:
+	- Make a general config file for mysql user information
+
 - [ ] Create user friendly way of making item configs
 
 - [ ] Create a way to report shrinkage 
