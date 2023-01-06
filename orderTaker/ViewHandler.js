@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 /**
  * 
  * 
@@ -17,31 +11,6 @@
  * 
  * 
  */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -86,40 +55,6 @@ function changeLayout (query) {
 
         showDetail(query.item, div);
         // console.log(query.item);
-
-        /*switch(query.item) {
-            case "popcorn": itemsConfig.popcorn.displayDetail(div); break;
-            case "slushie": itemsConfig.slushie.displayDetail(div); break;
-            case "tea": itemsConfig.tea.displayDetail(div); break;
-            case "lemonade": itemsConfig.lemonade.displayDetail(div); break;
-            case "coffee": itemsConfig.coffee.displayDetail(div); break;
-            case "dippinDots": itemsConfig.dippinDots.displayDetail(div); break;
-            case "cookies": itemsConfig.cookies.displayDetail(div); break;
-            case "hotChocolate": itemsConfig.hotChocolate.displayDetail(div); break;
-            case "donations": itemsConfig.donations.displayDetail(div); break;
-            
-            
-        // when you click to edit an order, it uses the name of the item, not the id so yeah
-            case "Popcorn": itemsConfig.popcorn.displayDetail(div); break;
-            case "Slushie": itemsConfig.slushie.displayDetail(div); break;
-            case "Tea": itemsConfig.tea.displayDetail(div); break;
-            case "Lemonade": itemsConfig.lemonade.displayDetail(div); break;
-            case "Coffee": itemsConfig.coffee.displayDetail(div); break;
-            case encodeURIComponent("Dippin' Dots"): itemsConfig.dippinDots.displayDetail(div); break;
-            case "Cookies": itemsConfig.cookies.displayDetail(div); break;
-            case encodeURIComponent("Hot Chocolate"): itemsConfig.hotChocolate.displayDetail(div); break;
-            case "Donations": itemsConfig.donations.displayDetail(div); break;
-
-            default: console.log("Undefined item");
-        }
-
-        mainDiv.appendChild(div);
-
-    // to check all hot chocolate boxes by default
-        for (var i = 0; i < document.getElementsByName("toppingsSelect").length; i++) {
-            document.getElementsByName("toppingsSelect")[i].click();
-        }*/
-
     }
     else if (query.view === "select") {
         removeAllChildren(mainContainer);
@@ -437,121 +372,14 @@ function updateOrderList (appendant) {
 
 				entryTable.appendChild(entryElementRow);
 				entryRow.appendChild(entryTable);
-			}
-
-
-// check if key has price, if so show price on line float right
-// find which attr. has a set price and display the price for that attr.
-
-            // if (config.getItemByDataName()) {}
-
-            // if (Object.hasOwn(config.getItemByDataName(item.name), "label")) {}
-        
-        
-
-
-        
-
-            
-            // for (var o = 0; o < itemObjectFromConfig.interface.length; o++) {
-            //     console.log();
-            // }
-            // if (itemObjectFromConfig.interface)
-            
+			}  
         }
-
-        
-        // li.innerHTML = ;
-
-
-
-        /*
-        if (item.name == "Popcorn") {
-            if (item.quantity > 1) {
-                li.innerHTML = item.name + " x" + item.quantity + "<span style=\"float: right;\">" + centToDollar(itemsConfig.popcorn.price * item.quantity) + "</span>";
-                totalPrice += itemsConfig.popcorn.price * item.quantity;
-            }
-            else {
-                li.innerHTML = item.name + "<span style=\"float: right;\">" + centToDollar(itemsConfig.popcorn.price) + "</span>";
-                totalPrice += itemsConfig.popcorn.price;
-            }
-        }
-        else if (item.name == "Slushie") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.size + "<span style=\"float: right;\">" + centToDollar(config.items.slushie.sizes[item.size].price) + "</span>";
-            totalPrice += itemsConfig.slushie.sizes[item.size].price;
-    
-            li.innerHTML += "<br>&emsp;&emsp;" + item.flavor.join("<br>&emsp;&emsp;");
-        }
-        else if (item.name == "Tea") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.size + "<span style=\"float: right;\">" + centToDollar(itemsConfig.tea.sizes[item.size].price) + "</span>";
-            totalPrice += itemsConfig.tea.sizes[item.size].price;
-        }
-        else if (item.name == "Lemonade") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.size + "<span style=\"float: right;\">" + centToDollar(itemsConfig.lemonade.sizes[item.size].price) + "</span>";
-            totalPrice += itemsConfig.lemonade.sizes[item.size].price;
-        }
-        else if (item.name == "Coffee") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.size + "<span style=\"float: right;\">" + centToDollar(itemsConfig.coffee.sizes[item.size].price) + "</span>";
-            totalPrice += itemsConfig.coffee.sizes[item.size].price;
-        }
-        else if (item.name == "Dippin' Dots") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.flavor + "<span style=\"float: right;\">" + centToDollar(itemsConfig.dippinDots.price) + "</span>";
-            totalPrice += itemsConfig.dippinDots.price;
-        }
-        else if (item.name == "Cookies") {
-            li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.type + "<span style=\"float: right;\">" + centToDollar(itemsConfig.cookies.price) + "</span>";
-            totalPrice += itemsConfig.cookies.price;
-        }
-        else if (item.name == "Hot Chocolate") {
-            // if it has toppings
-            if (item.toppings.length > 0) {
-                li.innerHTML = item.name + "<br>&emsp;&emsp;" + item.toppings.join("<br>&emsp;&emsp;") + "<span style=\"float: right;\">&emsp;" + centToDollar(itemsConfig.hotChocolate.price + itemsConfig.hotChocolate.toppings.price) + "</span>";
-                totalPrice += itemsConfig.hotChocolate.price + itemsConfig.hotChocolate.toppings.price;
-            }
-            else {
-                li.innerHTML = item.name + "<br>&emsp;&emsp;No toppings<span style=\"float: right;\">&emsp;" + centToDollar(itemsConfig.hotChocolate.price) + "</span>";
-                totalPrice += itemsConfig.hotChocolate.price;
-            }
-        }
-        else if (item.name == "Donations") {
-            li.innerHTML = item.name + "<span style=\"float: right;\">&emsp;" + centToDollar(item.amount) + "</span>";
-            totalPrice += parseInt(item.amount);
-        }
-        
-        */
-        
-
-
-		/*var entryOptions = document.createElement("td");
-		entryOptions.style.width = "5%";
-		entryOptions.style.borderBottomStyle = "ridge";
-		entryOptions.style.borderBottomWidth = "1px";
-
-		var removeButton = document.createElement("button");
-		removeButton.innerHTML = "Remove";
-		removeButton.title = "Remove item from order";
-		removeButton.style.marginRight = "10px";
-
-		entryOptions.appendChild(removeButton);
-
-
-		entryRow.appendChild(entryOptions);*/
-        
-		// entryRow.appendChild(entryElement);
 		appendant.appendChild(entryRow);
-        // itemListHTML = entryElement; // could save html in var and just add items to that so it won't have to calulate all of that above
     });
   
-    // var totalPriceElement = document.createElement("tr");
-  
-    // Total price
-    // totalPriceElement.innerHTML = "<td><p id='totalPrice'><span style=\"float: right;\"> Total: " + centToDollar(totalPrice) + "</span></p></td>";
-
+   
     document.getElementById("totalPrice").innerText = "Total: " + centToDollar(totalPrice);
 
-	
-    // appendant.appendtotalPriceChild(totalPriceElement);
-    // totalPriceElement.scrollIntoView();
 	if (appendant.children.length > 0) appendant.children[appendant.children.length - 1].scrollIntoView();
 }
 
@@ -679,12 +507,6 @@ function makeAddToOrderButton (item, appendant) {
 
 							var allArraysMatch = [];
 							var allPropertiesMatch = [];
-                            
-                            // need to check if item in order has data type in choices of order[i].name
-
-                            
-                            // console.log(item);
-                            // console.log(input[0]);
 
 							item.interface.forEach(interface => {
 								if (typeof interface === "object") {
@@ -705,28 +527,6 @@ function makeAddToOrderButton (item, appendant) {
 											// console.log(Array.isArray(itemObject[itemObjectProperty]));
 											if (Array.isArray(itemObject[itemObjectProperty]) && itemObject[itemObjectProperty].length == orderItem[interface.dataName].length) {
 
-												/*var fullMatch = false;
-												
-												itemObject[itemObjectProperty].forEach(newItemPropertyArrayValue => {
-													console.log(newItemPropertyArrayValue);
-
-													console.log(orderItem[interface.dataName]);
-
-													// if value is not in order item
-													if (!orderItem[interface.dataName].includes(newItemPropertyArrayValue)) {
-														console.log(`"${newItemPropertyArrayValue}" is not in "${orderItem[interface.dataName].join(", ")}"`);
-
-														// alreadyInOrder = false;
-														// doNotPush = false;
-														// return 0;
-													}
-													else {
-														fullMatch = true;
-														return 0;
-													}
-												});
-												*/
-
 												// check if both arrays have the same values with each value's index not mattering
 
 												var arrayMatches = [];
@@ -735,73 +535,23 @@ function makeAddToOrderButton (item, appendant) {
 												// console.log(itemObject[itemObjectProperty]);
 												
 												for (var newItemPropertyArrayValueIndex = 0; newItemPropertyArrayValueIndex < itemObject[itemObjectProperty].length; newItemPropertyArrayValueIndex++) {
-												// itemObject[itemObjectProperty].forEach(newItemPropertyArrayValue => {
-													// console.log(itemObject[itemObjectProperty][newItemPropertyArrayValueIndex]);
 													arrayMatches.push(orderItem[interface.dataName].includes(itemObject[itemObjectProperty][newItemPropertyArrayValueIndex]));
-												// });
 												}
 
-												// console.log(arrayMatches);
-												// console.log();
-
-
-												// if (!arrayMatches.includes(false)) {
-												// 	// console.log(arrayMatches);
-												// 	allArraysMatch.push(true);
-												// }
 
 												allArraysMatch.push(!arrayMatches.includes(false));
 											}
 											else {
 											// and property values
 												propertyMatches.push(orderItem[interface.dataName] === itemObject[itemObjectProperty]);
-												// console.log(orderItem);
-												// console.log(itemObject);
-												// console.log(orderItem[interface.dataName]);
-												// console.log(itemObject[itemObjectProperty]);
 											}
-											// else if (orderItem[interface.dataName] === itemObject[itemObjectProperty]) {
-												// console.log(orderItem[interface.dataName]);
-												// orderItem.quantity = parseInt(orderItem.quantity) + parseInt(input[0].value);
-												// quantityToAdd += parseInt(input[0].value);
-
-												// alreadyInOrder = true;
-												// doNotPush = true;
-
-												// allPropertiesMatch = 
-												
-
-												// return 0;
-											// }
 										}
 									});
-
-
-									// if (!propertyMatches.includes(false)) {
-									// 	// console.log(propertyMatches);
-									// 	allPropertiesMatch.push(true);
-									// }
-
+									
 									allPropertiesMatch.push(!propertyMatches.includes(false));
 
 								}
 							});
-
-                            // console.log(dataNames);
-							// console.log(itemObject);
-							// referencing itemObject means that interface type "number" will need to be
-							// the last interface element in item interfaces
-							
-
-							// console.log(allArraysMatch);
-							// console.log(allPropertiesMatch);
-
-
-                            
-                            // order[i][interfaceElement.dataName] = parseInt(order[i][interfaceElement.dataName]) + parseInt(input[0].value);
-                            // alreadyInOrder = true;
-                            // doNotPush = true;
-                            // return 0;
 
 							// do final stuff
 							if (!allArraysMatch.includes(false) && !allPropertiesMatch.includes(false)) {
@@ -814,8 +564,6 @@ function makeAddToOrderButton (item, appendant) {
 					});
                     
                     if (!alreadyInOrder) {
-                        // var popcornOrder = new PopcornClass(input.value);
-                        // order.push(popcornOrder);
                         itemObject.quantity = input[0].value;
                     }
                 }
@@ -840,8 +588,6 @@ function makeAddToOrderButton (item, appendant) {
                         }
                     }
                     if (!alreadyInOrder) {
-                        // var popcornOrder = new PopcornClass(input.value);
-                        // order.push(popcornOrder);
                         itemObject.amount = input[0].value;
                     }
                 }
@@ -849,15 +595,6 @@ function makeAddToOrderButton (item, appendant) {
 
 
 
-
-
-
-
-
-
-
-
-            // console.log(itemObject);
             if (!doNotPush) {
 				itemObject.remove = function() {
 					order.splice(order.indexOf(this), 1);
