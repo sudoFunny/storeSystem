@@ -3,20 +3,43 @@ A store system with features like; point of sale system, manager panel, sale log
 <br><br>
 
 # **Prerequisites**
+### If you would like to play around with this project first you'll need the basic LAMP server and then do the following
 - Make mysql database named "salesData"
+- Create two tables "itemConfigs" and "orders"
 - Create mysql user "testUser" with password "password"
 - Give new user privileges in new database
 	```
 	CREATE DATABASE salesData;
+	USE salesData;
+	CREATE TABLE `itemConfigs` (
+		`version` int NOT NULL AUTO_INCREMENT,
+		`dateTime` datetime DEFAULT NULL,
+		`config` text,
+		PRIMARY KEY (`version`)
+	);
+	CREATE TABLE `orders` (
+		`recordId` int NOT NULL AUTO_INCREMENT,
+		`orderId` int DEFAULT NULL,
+		`itemConfigVersion` int DEFAULT NULL,
+		`dateTime` datetime DEFAULT NULL,
+		`completed` tinyint(1) DEFAULT NULL,
+		`contents` text,
+		PRIMARY KEY (`recordId`)
+	);
 	CREATE USER 'testUser'@'localhost' IDENTIFIED BY 'password';
 	GRANT ALL PRIVILEGES ON salesData.* TO 'testUser'@'localhost';
 	```
 <br>
 
 ## In Progress
+- [ ] Get sales data and display as table:
+	- Feature found in manager panel
+
+- [ ] Create a general config file:
+	- Make a general config file for mysql user information
+
 - [ ] Change how we get "orderId":
-	- Add new column "completed" to "salesData"
-	- Remove reliance on "RecordClass.php" by getting "orderId" from "completed" field
+	- Remove reliance on "RecordClass.php" by getting "orderId" from sales data's "completed" field
 	- Remove [RecordClass.php](https://github.com/sudoFunny/storeSystem/blob/main/includes/RecordClass.php)
 
 - [ ] Remove reliance on "orderPools":
@@ -24,6 +47,16 @@ A store system with features like; point of sale system, manager panel, sale log
 <br>
 
 ## Planned for the Future
-- [ ] Create user friendly way of making item configs:
+- [ ] Create user friendly way of making item configs
+
 - [ ] Create a way to report shrinkage 
 	> shrinkage: product loss due to; spills, theft, product perishment, etc...
+	
+- [ ] Create an installer of sorts:
+	- An installer for this project... probably bash or python
+	- Does stuff like:
+		- Downloads: php, php-mysqli, mysql, apache
+		- Systemctl starts and enables what it needs
+		- Sets up: mysql stuff... for now at least
+		
+		- One day add option for user of installer to choose weather they want the device to act as a Wi-Fi access point and router
