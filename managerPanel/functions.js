@@ -3,18 +3,14 @@
 
 
 
-function convertJsonSalesDataToCSV (salesData) {
+function convertJsonSalesDataToTable (salesData) {
 
 // get itemConfig
 	var itemConfigs = salesData.pop()
-	// console.log(salesData);
-	// console.log(itemConfigs);
-
 
 // generate templates
 	var templates = {};
 
-	// foreach (version in itemConfigs) {
 	for (var itemConfigIndex = 0; itemConfigIndex < itemConfigs.length; itemConfigIndex++) {
 
 		if (Object.keys(templates).includes(itemConfigs[itemConfigIndex].version)) {
@@ -26,11 +22,8 @@ function convertJsonSalesDataToCSV (salesData) {
 		
 	}
 
-	// console.log(templates);
-
 	templates = addSalesDataToTemplates(templates, salesData);
 
-	// console.log(templates);
 
 /*
 // for later ig
@@ -58,57 +51,31 @@ function convertJsonSalesDataToCSV (salesData) {
 		// rows are comprised of:
 		// Item title, quantity, price
 		// Item title has "displayName dataName"
-			var row = [
-				templateEntry.itemDisplayName + " " + templateEntry.dataName + ": " + templateEntry.displayName,
-				templateEntry.quantity,
-				templateEntry.price
-			];
+
+			if (Array.isArray(templateEntry.displayName)) {
+				var row = [
+					templateEntry,
+					templateEntry.itemDisplayName + " " + templateEntry.dataName + ": " + templateEntry.displayName.join(", "),
+					templateEntry.quantity,
+					templateEntry.price
+				];
+			}
+			else {
+				var row = [
+					templateEntry,
+					templateEntry.itemDisplayName + " " + templateEntry.dataName + ": " + templateEntry.displayName,
+					templateEntry.quantity,
+					templateEntry.price
+				];
+			}
 
 			tables[templateVersion].push(row);
 
 		});
 
-
 	});
 
-	console.log(tables);
-	console.table(tables["1"]);
-
-	var cvsTable = {};
-
-	Object.keys(tables).forEach(tableVersion => {
-
-		cvsTable[tableVersion] = "";
-
-	// make table header
-		var headerRow = [
-			"Item title",
-			"Quantity",
-			"Price"
-		];
-		cvsTable[tableVersion] += headerRow.join(",") + "\n";
-
-
-		tables[tableVersion].forEach(row => {
-
-			row.forEach(rowValue => {
-				if (typeof rowValue === "string" && rowValue.includes(",")) {
-					rowValue = "\"" + rowValue + "\"";
-				}
-			});
-		
-			cvsTable[tableVersion] += row.join(",") + "\n";
-
-		});
-
-		
-	});
-
-	// console.log(cvsTable);
-
-
-
-
+	return tables;
 }
 
 
@@ -122,14 +89,11 @@ function createTemplate (config) {
 
 	config.config.items.forEach(item => {
 
-
 		item.interface.forEach(interfaceElement => {
 			if (interfaceElement.save != undefined || interfaceElement.save) {
 
-
 				if (interfaceElement.choices != undefined) {
 
-				// what about hotChocolate? if no topping?
 					if (interfaceElement.minSelection <= 0) {
 						var entry = {};
 
@@ -146,58 +110,134 @@ function createTemplate (config) {
 						entrys.push(entry);
 					}
 
-					interfaceElement.choices.forEach(choice => {
-						var entry = {};
+					if (interfaceElement.type != "checkbox") {
+						interfaceElement.choices.forEach(choice => {
+							var entry = {};
 
+							entry.dataName = interfaceElement.dataName;
+							entry.dataNameValue = choice.dataName;
+							entry.displayName = choice.displayName;
 
-						entry.dataName = interfaceElement.dataName;
-						entry.dataNameValue = choice.dataName;
-						entry.displayName = choice.displayName;
+							if (choice.price === "") {
+								choice.price = 0;
+							}
 
-						if (choice.price === "") {
-							choice.price = 0;
+							if (item.price === "") {
+								item.price = 0;
+							}
+
+							if (interfaceElement.price == undefined) {
+								interfaceElement.price = 0;
+							}
+
+							entry.price = parseInt(item.price) + parseInt(choice.price) + parseInt(interfaceElement.price);
+
+							entry.quantity = 0;
+
+							entry.itemDataName = item.dataName;
+							entry.itemDisplayName = item.displayName;
+							
+							entrys.push(entry);
+						});
+					}
+				// if interfaceElement.type === "checkbox" make an entry for each possible combination of the choices
+					else if (interfaceElement.type === "checkbox") {
+
+						var listOfChoices = [];
+
+						interfaceElement.choices.forEach(choice => {
+							listOfChoices.push(choice);
+						});
+
+						// Thanks to guy on stack overflow
+						var combinations = [];
+						var temp = [];
+						var slent = Math.pow(2, listOfChoices.length);
+
+						for (var i = 0; i < slent; i++) {
+
+							temp = [];
+							for (var j = 0; j < listOfChoices.length; j++) {
+
+								if ((i & Math.pow(2, j))) {
+									temp.push(listOfChoices[j]);
+								}
+							}
+							if (temp.length > 0) {
+								combinations.push(temp);
+							}
 						}
 
-						if (item.price === "") {
-							item.price = 0;
-						}
+						combinations.sort((a, b) => a.length - b.length);
 
-						if (interfaceElement.price == undefined) {
-							interfaceElement.price = 0;
-						}
+						combinations.forEach(combination => {
+							var entry = {};
 
-						entry.price = parseInt(item.price) + parseInt(choice.price) + parseInt(interfaceElement.price);
+							entry.dataName = interfaceElement.dataName;
+							entry.dataNameValue = [];
+							entry.displayName = [];
 
+							entry.price = 0;
 
-						// entry.dataName = interfaceElement.dataName;
-						entry.quantity = 0;
-		
-						
-						
-						entry.itemDataName = item.dataName;
-						entry.itemDisplayName = item.displayName;
-						
-						
-		
-						entrys.push(entry);
-						// console.log(interfaceElement);
-					});
+							combination.forEach(combinationElement => {
+
+								entry.dataNameValue.push(combinationElement.dataName);
+								entry.displayName.push(combinationElement.displayName);
+
+								if (combinationElement.price === "") {
+									combinationElement.price = 0;
+								}
+
+								entry.price += parseInt(combinationElement.price);
+
+							});
+
+							if (item.price === "") {
+								item.price = 0;
+							}
+
+							if (interfaceElement.price == undefined) {
+								interfaceElement.price = 0;
+							}
+
+							entry.price += parseInt(item.price) + parseInt(interfaceElement.price);	
+
+							entry.quantity = 0;
+
+							entry.itemDataName = item.dataName;
+							entry.itemDisplayName = item.displayName;
+			
+							entrys.push(entry);
+						});
+
+					}
 				}
 				else {
-					alert("choices were undefined");
+					// console.log("choices were undefined for");
+					// console.log(interfaceElement);
+
+					if (interfaceElement.type === "money") {
+						var entry = {};
+
+						entry.dataName = interfaceElement.dataName;
+						entry.displayName = "";
+						entry.dataNameValue = interfaceElement.dataName
+
+						entry.type = interfaceElement.type;
+
+						entry.price = "";
+
+						entry.quantity = 0;
+
+						entry.itemDataName = item.dataName;
+						entry.itemDisplayName = item.displayName;
+
+						entrys.push(entry);
+					}
 				}
 			}
 		});
 	});
-
-	
-
-	// entrys.itemDataName = 
-
-
-	// template.version = config.version;
-
-	// console.log(entrys);
 
 	return entrys;
 }
@@ -212,36 +252,42 @@ function createTemplate (config) {
 function addSalesDataToTemplates (templates, salesData) {
 
 
-
 	salesData.forEach(order => {
-		// console.log(order);
-
-		// console.log(templates[order.itemConfigVersion]);
-
 
 		order.contents.forEach(item => {
-			// console.log(item);
-
 
 			// find item in correct template and increment its quantity
 			for (var templateEntryIndex = 0; templateEntryIndex < templates[order.itemConfigVersion].length; templateEntryIndex++) {
-				// var template = templates[order.itemConfigVersion];
 
 				var entry = templates[order.itemConfigVersion][templateEntryIndex];
-				// console.log(entry);
 
 				if (item.name === entry.itemDataName && Object.keys(item).includes(entry.dataName)) {
 
 
-// need to account for cases like: hotChocolate with all toppings or slushie whose flavor is of many... so basically have an entry for each possible combination of array
 					if (Array.isArray(entry.dataNameValue)) {
-						
-						if (item[entry.dataName].length === entry.dataNameValue.length) {
-							entry.quantity += parseInt(item.quantity);
+
+						if (item[entry.dataName].sort().join(' ') === entry.dataNameValue.sort().join(' ')) {
+
+							if (item.quantity == undefined) { // basically for interface.type = money
+								entry.quantity += parseInt(item[entry.dataName]);
+							}
+							else
+								entry.quantity += parseInt(item.quantity);
 						}
 					}
 					else if (item[entry.dataName] === entry.dataNameValue) {
-						entry.quantity += parseInt(item.quantity);
+						if (item.quantity == undefined) { // basically for interface.type = money
+							entry.quantity += parseInt(item[entry.dataName]);
+						}
+						else
+							entry.quantity += parseInt(item.quantity);
+					}
+					// basically for interface.type = money
+					else if (item.name === entry.dataName) {
+
+						if (entry.type === "money") {
+							entry.quantity += parseInt(item[entry.dataName]);
+						}
 					}
 				}
 			}
@@ -255,253 +301,38 @@ function addSalesDataToTemplates (templates, salesData) {
 
 
 
-/*
-function convertJsonSalesDataToCSV (salesData) {
-	
-	
-
-// get itemConfig
-	var itemConfigs = salesData.pop()
-	console.log(salesData);
-	console.log(itemConfigs);
 
 
-	var itemTemplates = [];
 
-// make templates
-	salesData.forEach(sale => {
-		// console.log(sale.itemConfigVersion);
+function centToDollar (cent) {
+	return (cent / 100).toLocaleString("en-US", {style:"currency", currency:"USD"});
+}
 
 
 
 
-	// find matching itemConfigVersion
-		
-		itemConfigs.forEach(configObject => {
-			// configObject.config = JSON.parse(configObject.config);
+function wordWrap (str, cols, delimiter) {
+	var formatedString = '',
+		wordsArray = [];
 
-			if (configObject.version == sale.itemConfigVersion) {
-				// console.log(JSON.parse(sale.contents));
+	wordsArray = str.split(' ');
 
+	formatedString = wordsArray[0];
 
-				// sale.contents = JSON.parse(sale.contents);
-
-
-				Object.keys(sale.contents).forEach(propertyName => {
-
-					console.log(sale.contents[propertyName]);
-
-
-
-
-
-					for (var itemIndex = 0; itemIndex < configObject.config.items.length; itemIndex++) {
-
-
-
-						// configObject.config.items[itemIndex].interface.forEach(interfaceElement => {
-						
-						for (var interfaceIndex = 0; interfaceIndex < configObject.config.items[itemIndex].interface.length; interfaceIndex++) {
-							var interfaceElement = configObject.config.items[itemIndex].interface[interfaceIndex];
-							
-							if (interfaceElement.save != undefined || interfaceElement.save) {
-								console.log(interfaceElement.dataName);
-
-
-
-
-
-								console.log(sale.contents[propertyName][interfaceElement.dataName]);
-								// break;
-							}
-						}
-						// });
-					}
-				});
-
-
-
-
-
-
-
-
+	for (var i = 1; i < wordsArray.length; i++) {
+		if (wordsArray[i].length > cols) {
+			formatedString += delimiter + wordsArray[i];
+		} else {
+			if (formatedString.length + wordsArray[i].length > cols) {
+				formatedString += delimiter + wordsArray[i];
+			} else {
+				formatedString += ' ' + wordsArray[i];
 			}
-		});
-		
-
-
-
-
-
-
-
-		// if (!itemTemplates.length == 0) {
-			// var matchingVersonFound = false;
-			// itemTemplates.forEach(template => {
-			// 	if (template.version == sale.itemConfigVersion) matchingVersonFound = true;
-			// });
-
-			// if (!matchingVersonFound) {
-
-			// 	for (var configIndex = 0; configIndex < itemConfigs.length; configIndex++) {
-
-			// 		if (itemConfigs[configIndex].version == sale.itemConfigVersion) {
-			// 			itemTemplates.push(new ItemsTemplate(sale.itemConfigVersion, JSON.parse(itemConfigs[configIndex].config)));
-			// 			break;
-			// 		}
-			// 	}
-				
-			// }
-		// }
-	});
-
-	// console.log(itemTemplates);
-
-
-
-
-	// salesData.forEach(sale => {
-	// 	console.log(sale);
-	// });
-
-
-	// var data = createSalesDataTemplate();
-
-
-
-}
-*/
-
-
-
-class ItemsTemplate {
-	
-	constructor (version, config) {
-		this.version = version;
-		this.config = config;
-
-
-
-		// this.rows = [];
-
-
-	// make properties in template
-		
-		// config.items.forEach(item => {
-			
-		// });
-
-		// console.log(this.rows);
+		}
 	}
 
-
-
-	fillData (data) {
-
-	}
+	return formatedString;
 }
-
-
-
-
-
-
-
-/*
-
-
-
-
-
-class ItemsTemplate {
-	
-	constructor (version, config) {
-		this.version = version;
-		this.config = config;
-
-
-
-		this.rows = [];
-
-
-	// make properties in template
-		
-		config.items.forEach(item => {
-			// console.log(item);
-			
-
-			// get each option for item
-			// var itemTemplate = {dataName: item.dataName, quantity: 0};
-			var itemTemplate = {dataName: item.dataName, variants: []};
-
-
-			item.interface.forEach(interfaceElement => {
-
-				// if (interfaceElement.dataName == undefined) return 0;
-				var itemVeriant = {dataName: interfaceElement.dataName}; 
-
-				if (interfaceElement.hasOwnProperty("choices")) {
-					interfaceElement.choices.forEach(interfaceOption => {
-						itemVeriant["dataName"] = interfaceOption.dataName
-						itemVeriant["displayName"] = interfaceOption.displayName
-						itemVeriant["price"] = interfaceOption.price
-					});
-				}
-
-				itemTemplate.variants.push(itemVeriant);
-			});
-
-			// itemTemplate.variants.push();
-
-			this.rows.push(itemTemplate);
-		});
-
-		// console.log(this.rows);
-	}
-}
-
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

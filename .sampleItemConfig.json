@@ -317,7 +317,8 @@
                "label":"Amount in cent:",
                "step":100,
                "defaultValue":100,
-               "save":true
+               "save":true,
+               "dataName":"donation"
             }
          ]
       }

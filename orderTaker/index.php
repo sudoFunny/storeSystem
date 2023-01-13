@@ -74,10 +74,12 @@ for (var i = 0; i < config.items.length; i++) {
 
         config.items[i].interface[o].getChoiceWithDataName = function(dataName) {
 
-            for (var p = 0; p < this.choices.length; p++) {
-                
-                if (this.choices[p].dataName === dataName) {
-                    return this.choices[p];
+            if (this.choices != undefined) {
+                for (var p = 0; p < this.choices.length; p++) {
+                    
+                    if (this.choices[p].dataName === dataName) {
+                        return this.choices[p];
+                    }
                 }
             }
 

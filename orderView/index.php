@@ -47,7 +47,7 @@
 
 
 
-<script type="text/javascript" src="../orderTaker/items.js"></script>
+<!-- <script type="text/javascript" src="../orderTaker/items.js"></script> -->
 <script src="../includes/jquery.min.js"></script>
 
 <script type="text/javascript">
@@ -75,7 +75,7 @@ while($row = mysqli_fetch_assoc($response)) {
 config.getItemByDataName = function(dataName) {
     for (var i = 0; i < config.items.length; i++) {
 
-        if (config.items[i].data_name === dataName) {
+        if (config.items[i].dataName === dataName) {
             return config.items[i];
         }
     }
@@ -92,7 +92,7 @@ for (var i = 0; i < config.items.length; i++) {
 
         for (var p = 0; p < this.length; p++) {
             
-            if (this[p].data_name === dataName) {
+            if (this[p].dataName === dataName) {
                 return this[p];
             }
         }
@@ -110,7 +110,7 @@ for (var i = 0; i < config.items.length; i++) {
 
             for (var p = 0; p < this.choices.length; p++) {
                 
-                if (this.choices[p].data_name === dataName) {
+                if (this.choices[p].dataName === dataName) {
                     return this.choices[p];
                 }
             }
@@ -186,8 +186,25 @@ function updateView (orders) {
 
 		delete order.id;
 
+        var pushNewOrder = true;
+
 		for (var itemIndex = 0; itemIndex < Object.keys(order).length; itemIndex++) {
-			var item = order[itemIndex];
+
+            var item = order[itemIndex];
+
+            var orderItemConfig = config.getItemByDataName(item.name);
+
+            if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money" && Object.keys(order).length < 2) {
+                pushNewOrder = false;
+                continue;
+            }
+
+			if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money") {
+				continue;
+			}
+
+
+			
 		// order.forEach(function(item) {
 
 			var entryElement = document.createElement("p");
@@ -198,22 +215,33 @@ function updateView (orders) {
 
                 if (Array.isArray(item[keys[i]])) {
 
-                    entryElement.innerHTML += keys[i] + ":";
+                    if (item[keys[i]].length > 1) {
+						entryElement.innerHTML += keys[i] + ":<br>";
 
-                    for (var o = 0; o < item[keys[i]].length; o++) {
-                        entryElement.innerHTML += "<br>&emsp;&emsp;" + item[keys[i]][o];
+                        for (var o = 0; o < item[keys[i]].length; o++) {
+                            entryElement.innerHTML += "&emsp;&emsp;" + item[keys[i]][o] + "<br>";
+                        }
+                    }
+                    else {
+
+						entryElement.innerHTML += keys[i] + ": none<br>";
+
                     }
                 }
                 else {
-                    entryElement.innerHTML += keys[i] + ": " + item[keys[i]];
-                    entryElement.innerHTML += "<br>";
+
+					if (keys[i] != item[keys[i]]) {
+						entryElement.innerHTML += keys[i] + ": " + item[keys[i]];
+                    	entryElement.innerHTML += "<br>";
+					}
                 }
 
             div.appendChild(entryElement);
             }
         // });
 		}
-		table.appendChild(div);
+
+        if (pushNewOrder) table.appendChild(div);
     });
 
 /*

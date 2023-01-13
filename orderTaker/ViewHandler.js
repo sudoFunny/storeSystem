@@ -7,9 +7,6 @@
  * 
  * KEYWORDS YOU CANNOT USE FOR dataName
  * "quantity"
- * "amount"
- * 
- * 
  */
 
 
@@ -292,14 +289,13 @@ function updateOrderList (appendant) {
 						
 						if (item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName] > 1) {
 
-							// if (itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).type != "money") {
+							if (itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).type != "money") {
 								entryElementPriceCell.innerHTML = "&times; " + item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName];
-							// }
-							// else {
-								// totalPrice += parseInt(item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName]);
-								// entryElementPriceCell.innerHTML = "&plus; " + centToDollar(item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName]);
-							// 	console.log(1);
-							// }
+							}
+							else {
+								totalPrice += parseInt(item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName]);
+								entryElementPriceCell.innerHTML = "&plus; " + centToDollar(item[itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).dataName]);
+							}
 						}
 
 						// console.log(item);
@@ -581,14 +577,14 @@ function makeAddToOrderButton (item, appendant) {
                     var alreadyInOrder = false;
                     for (var i = 0; i < order.length; i++) {
                         if (order[i].name === item.dataName) {
-                            order[i].amount = parseInt(order[i].amount) + parseInt(input[0].value);
+                            order[i][interfaceElement.dataName] = parseInt(order[i][interfaceElement.dataName]) + parseInt(input[0].value);
                             alreadyInOrder = true;
                             doNotPush = true;
                             break;
                         }
                     }
                     if (!alreadyInOrder) {
-                        itemObject.amount = input[0].value;
+                        itemObject[interfaceElement.dataName] = input[0].value;
                     }
                 }
             }

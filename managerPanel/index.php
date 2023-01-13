@@ -17,17 +17,17 @@ $mySQLConnection = new MySQLConnection();
     
         <table id="table" style="margin-left: auto; margin-right: auto; text-align: center;">
 			<tr>
-                <td colspan=2><p>General Stuff<br>Double click to interact with buttons</p></td>
+                <td colspan=2><h1>Manager Panel</h1></td>
             </tr>
             
-            <tr>
+            <!-- <tr>
                 <td class="leaveMeAlone">Action</td>
                 <td class="leaveMeAlone">Option</td>
-            </tr>
+            </tr> -->
             
             
             <tr>
-                <td><button class="thicc" onclick="modal.enable(); modal.showGetSalesData()">Get sales data from</button></td>
+                <td colspan=2><button class="thicc button" onclick="modal.enable(); modal.showGetSalesData()">Get sales data</button></td>
             </tr>
             
             
@@ -91,18 +91,11 @@ function init () {
 
 
 
-
-
-
-
-
-
-
 // for testing
 
-document.getElementsByClassName("thicc")[0].click();
-document.getElementById("fromDropDownbutton").click();
-document.getElementById("fromQuickOptionSelectDropDown").children[1].children[3].children[0].click();
+// document.getElementsByClassName("thicc")[0].click();
+// document.getElementById("fromDropDownbutton").click();
+// document.getElementById("fromQuickOptionSelectDropDown").children[1].children[3].children[0].click();
 }
 
 
@@ -129,52 +122,6 @@ function flushPools () {
             }
         });
     }
-}
-
-function getSalesData () {
-    // if (document.getElementById("records").value != "No data") {
-    //     $.ajax({
-    //         url: "generateCSV.php",
-    //         type: "POST",
-    //         dataType: "JSON",
-    //         data: {record: document.getElementById("records").value},
-    //         success: function(response){
-                
-    //             var a = document.createElement('a');
-    //             a.setAttribute('href', response);
-    //             a.setAttribute('download', response.split("/").pop());
-    //             a.style.display = 'none';
-    //             document.body.appendChild(a);
-    //             a.click();
-    //             a.remove();
-    //         }
-    //     });
-    // }
-    // else
-    //     alert("No data");
-
-	modal.toggle();
-
-	// document.getElementById("myModal").style.display = "block";
-	
-	// var modalContainer = document.getElementById("modalContainer");
-
-	// removeAllChildren(modalContainer);
-	
-
-}
-
-
-function getMasterSalesData () {
-	// $.ajax({
-    //     url: "flushPool.php",
-    //     type: "POST",
-    //     dataType: "JSON",
-    //     data: {pool: document.getElementById("pools").value},
-    //     success: function(response){
-    //         alert(response);
-    //     }
-    // });
 }
 
 
@@ -255,58 +202,9 @@ function handleFileLoad(event) {
 
 
 
-function rollBackToPreviousItemConfig () {
-/*
-    if (document.getElementById("rollBackOptions").value != "") {
-        if (confirm("Are you sure you want to roll back to " + document.getElementById("rollBackOptions").options[document.getElementById("rollBackOptions").selectedIndex].text + "?") == true) {
-            $.ajax({
-                url: "updateItemConfig.php",
-                type: "POST",
-                dataType: "JSON",
-                data: {newItemConfig: "<?php
-                //echo $previousItemConfigsPath;
-                ?>" + document.getElementById("rollBackOptions").value, uploadFromPath: true},
-                success: function(response){
-                    // alert(response);
-                    window.location.reload();
-                }
-            });
-        }
-    }
-    else
-        alert("No data");
-*/
-}
-
-
-
-function deleteAnItemConfig () {
-/*
-    if (document.getElementById("rollBackOptions").value != "") {
-        if (confirm("Are you sure you want to roll back to " + document.getElementById("deleteAnItemConfigOptions").options[document.getElementById("deleteAnItemConfigOptions").selectedIndex].text + "?") == true) {
-            $.ajax({
-                url: "deleteAnItemConfig.php",
-                type: "POST",
-                dataType: "JSON",
-                data: {itemConfigVersion: document.getElementById("deleteAnItemConfigOptions").value},
-                success: function(response){
-                    alert(response.message);
-                    window.location.reload();
-                }
-            });
-        }
-    }
-    else
-        alert("No data");
-*/
-}
-
-
-
-
-function editItemConfig () {
-	window.location = "editItemConfig";
-}
+// function editItemConfig () {
+// 	window.location = "editItemConfig";
+// }
 
 
 
@@ -325,15 +223,16 @@ function removeAllChildren (parent) {
 	/* width: 100%; */
 	border-style: none;
 	cursor: pointer;
+    padding: 5px 10px;
 }
 
 .buttonPadding {
 	padding: 5px 10px;
 }
 
-td:not(.leaveMeAlone){
+/* td:not(.leaveMeAlone){
     padding-bottom: 50px;
-}
+} */
 
 .thicc {
 	width: 100%;
@@ -453,5 +352,13 @@ td:not(.leaveMeAlone){
 
 .hidden {
 	display: none;
+}
+
+
+
+
+
+tr:nth-child(even) {
+    background-color: #bebebe;
 }
 </style>
