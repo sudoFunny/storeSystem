@@ -1,6 +1,4 @@
 <?php
-include("../includes/RecordClass.php");
-// include("../includes/DatabasesClass.php");
 include("../includes/mySQLConnection.php");
 $mySQLConnection = new MySQLConnection();
 // $response = $mySQLConnection->query("SELECT version, dateTime FROM itemConfigs;");
