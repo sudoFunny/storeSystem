@@ -34,8 +34,10 @@ A store system with features like; point of sale system, manager panel, sale log
 <br>
 
 ## In Progress
-- [ ] Get sales data and display as table:
+- [x] Get sales data and display as table:
 	- Feature found in manager panel
+	
+- [ ] Just rewrite everything
 
 - [ ] Change how we get "orderId":
 	- Remove reliance on "RecordClass.php" by getting "orderId" from sales data's "completed" field
