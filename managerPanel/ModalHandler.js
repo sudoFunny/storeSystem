@@ -781,6 +781,514 @@ class Modal {
 			this.content.appendChild(table);
 		});
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	async editCurrentItemConfig () {
+		this.clearContent();
+
+
+		var title = document.createElement("h2");
+		title.innerText = "Edit Current Item Config";
+		title.style.textAlign = "center";
+		title.style.marginTop = "50px";
+
+		var description = document.createElement("p");
+		description.innerText = "Edit current item config";
+
+		this.content.appendChild(title);
+		this.content.appendChild(description);
+
+
+
+
+
+		var textContainer = document.createElement("div");
+
+
+		var currentItemConfigVersion = document.createElement("p");
+		currentItemConfigVersion.id = "currentItemConfigVersion";
+		
+
+
+	// is mouse over
+		var mouseInside = {
+			"textArea": false,
+			"lineNumberColumn": false
+		};
+
+
+		var textEditorTable = document.createElement("table");
+		textEditorTable.style.borderCollapse = "collapse";
+
+		textEditorTable.classList.add("textEditor");
+
+
+
+
+		var editorRow = document.createElement("tr");
+
+
+		var lineNumberCell = document.createElement("td");
+		lineNumberCell.style.padding = "0px";
+
+	// line numbers
+		var lineNumberColumn = document.createElement("pre");
+
+		lineNumberColumn.id = "lineNumberColumn";
+
+		// lineNumberColumn.classList.add("textEditor");
+
+		lineNumberColumn.style.borderStyle = "none";
+		lineNumberColumn.style.outline = "none";
+		lineNumberColumn.style.scrollbarWidth = "none";
+
+		lineNumberColumn.style.height = "500px";
+
+		lineNumberColumn.style.overflowX = "hidden";
+		lineNumberColumn.style.overflowY = "auto";
+		lineNumberColumn.style.textAlign = "right";
+
+		lineNumberColumn.style.cursor = "default";
+		lineNumberColumn.style.margin = "0px";
+
+
+		lineNumberColumn.addEventListener("mouseover", function (event) {
+			mouseInside.lineNumberColumn = true;
+		}, false);
+
+		lineNumberColumn.addEventListener("mouseleave", function (event) {
+			mouseInside.lineNumberColumn = false;
+		}, false);
+
+		lineNumberColumn.onscroll = () => {
+			if (mouseInside.lineNumberColumn) {
+				textArea.scrollTop = lineNumberColumn.scrollTop;
+			}
+		};
+
+		lineNumberCell.appendChild(lineNumberColumn);
+
+
+
+
+
+
+		var textAreaCell = document.createElement("td");
+		textAreaCell.style.padding = "0px";
+		textAreaCell.style.width = "100%";
+
+
+		var textArea = document.createElement("textarea");
+
+		textArea.id = "currentItemConfigTextArea";
+
+		textArea.classList.add("textEditorField");
+		// textArea.classList.add("textEditor");
+
+		textArea.style.width = "100%";
+		textArea.style.resize = "none";
+		textArea.style.minHeight = "500px";
+
+		textArea.style.padding = "0px";
+		textArea.style.margin = "0px";
+
+		// no word wrap
+		textArea.style.whiteSpace = "pre";
+		textArea.style.overflowWrap = "normal";
+		textArea.style.overflowX = "scroll";
+
+
+		textArea.addEventListener("mouseover", function (event) {
+			mouseInside.textArea = true
+		}, false);
+
+		textArea.addEventListener("mouseleave", function (event) {
+			mouseInside.textArea = false;
+		}, false);
+
+		textArea.onscroll = () => {
+			if (mouseInside.textArea) {
+				lineNumberColumn.scrollTop = textArea.scrollTop;
+			}
+		};
+
+
+
+
+		// textArea.setAttribute("data-config-origin", JSON.stringify({}));
+
+		
+	// get cursor position
+		textArea.onclick = () => {
+			var cursorPosition = $("#currentItemConfigTextArea").prop("selectionStart");
+
+			var textBeforeCursorPosition = currentItemConfigTextArea.value.substring(0, cursorPosition);
+
+			var lines = textBeforeCursorPosition.split("\n");
+
+			cursorPositionElement.innerText = "Ln " + lines.length + ", Col " + parseInt(lines[lines.length - 1].length + 1);
+
+
+			var selectedElements = document.getElementsByClassName("selectedLine");
+			
+			for (var elementIndex = 0; elementIndex < selectedElements.length; elementIndex++) {
+				selectedElements[elementIndex].classList.remove("selectedLine");
+			}
+
+
+			lineNumberColumn.children[lines.length - 1].classList.add("selectedLine");
+		};
+
+
+		// getCurrentItemConfig();
+		$.ajax({
+			url: "getCurrentItemConfig.php",
+			type: "POST",
+			dataType: "JSON",
+			success: function(itemConfig) {
+				itemConfig.config = JSON.parse(itemConfig.config);
+
+				// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig));
+
+				var lines = JSON.stringify(itemConfig.config, null, 4);
+
+				currentItemConfigTextArea.innerHTML = lines;
+
+				currentItemConfigVersion.innerText = "Current item config version: " + itemConfig.version;
+
+
+
+				lineNumberColumn.innerHTML = [...Array(lines.split("\n").length).keys()].map(x => "<div>" + (x += 1) + "</div>").join("");
+				
+				lineNumberColumn.children[lineNumberColumn.children.length - 1].style.paddingLeft = "15px";
+
+				lineNumberColumn.style.height = currentItemConfigTextArea.offsetHeight;
+
+				
+
+				
+
+			// get cursor position
+				$("#currentItemConfigTextArea").on("keyup", function() {
+					var cursorPosition = $("#currentItemConfigTextArea").prop("selectionStart");
+		
+					var textBeforeCursorPosition = currentItemConfigTextArea.value.substring(0, cursorPosition);
+		
+					var lines = textBeforeCursorPosition.split("\n");
+
+					cursorPositionElement.innerText = "Ln " + lines.length + ", Col " + parseInt(lines[lines.length - 1].length + 1);
+				});
+			}
+		});
+
+
+
+		textAreaCell.appendChild(textArea);
+
+
+
+
+
+		editorRow.appendChild(lineNumberCell);
+		editorRow.appendChild(textAreaCell);
+
+		
+		textEditorTable.appendChild(editorRow);
+		
+
+
+
+
+
+
+
+
+	// cursor position
+		var cursorPositionElement = document.createElement("span");
+
+		cursorPositionElement.id = "cursorPositionElement";
+		cursorPositionElement.style.float = "right";
+
+		cursorPositionElement.innerText = "Ln 1, Col 1";
+
+	// error
+		var errorElement = document.createElement("span");
+
+		errorElement.id = "errorElement";
+		// errorElement.style.float = "left";
+		errorElement.style.color = "red";
+
+
+
+
+	// reset textarea
+		var resetButton = document.createElement("button");
+		resetButton.classList.add("button");
+
+		resetButton.innerText = "Reset text";
+
+		resetButton.onclick = () => {
+			if (confirm("Are you sure you want to remove all text then get and paste the current item config?") == true) {
+				$.ajax({
+					url: "getCurrentItemConfig.php",
+					type: "POST",
+					dataType: "JSON",
+					success: function(itemConfig) {
+						itemConfig.config = JSON.parse(itemConfig.config);
+
+						// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig));
+		
+						document.getElementById("currentItemConfigTextArea").value = JSON.stringify(itemConfig.config, null, 4);
+		
+						document.getElementById("currentItemConfigVersion").innerText = "Current item config version: " + itemConfig.version;
+
+						document.getElementById("cursorPositionElement").innerText = "Ln 1, Col 1";
+
+						document.getElementById("errorElement").innerText = "";
+					}
+				});
+			}
+		};
+	
+	// beautify textarea
+		var beautifyButton = document.createElement("button");
+		beautifyButton.classList.add("button");
+
+		beautifyButton.innerText = "Beautify text";
+
+		beautifyButton.onclick = () => {
+
+			try {
+				var json = JSON.parse(document.getElementById("currentItemConfigTextArea").value);
+
+				document.getElementById("currentItemConfigTextArea").value = JSON.stringify(json, null, 4);
+
+				document.getElementById("errorElement").innerText = "";
+			} catch (error) {
+				document.getElementById("errorElement").innerText = "\nCannot beautify due to an error:\n" + error.message;
+			}
+		};
+
+	// check for error
+		var errorCheckButton = document.createElement("button");
+		errorCheckButton.classList.add("button");
+
+		errorCheckButton.id = "errorCheckButton";
+
+		errorCheckButton.innerText = "Error check";
+
+		errorCheckButton.onclick = () => {
+
+			try {
+			// when no error
+				JSON.parse(document.getElementById("currentItemConfigTextArea").value);
+
+				errorElement.innerHTML = "<span class='backgroundAnimated'>No error</span>";
+
+				errorElement.setAttribute("data-error", 0);
+
+				var errorElements = document.getElementsByClassName("errorLine");
+			
+				for (var elementIndex = 0; elementIndex < errorElements.length; elementIndex++) {
+					errorElements[elementIndex].classList.remove("errorLine");
+				}
+
+				setTimeout(() => {
+					if (errorElement.getAttribute("data-error") == "0") {
+						errorElement.innerText = "";
+					}
+				}, 5000)
+			} catch (error) {
+			// when error
+
+
+				errorElement.setAttribute("data-error", 1);
+				errorElement.innerText = "\n" + error.message;
+				errorElement.scrollIntoView();
+
+				if (error.message.substring(0, 11) === "JSON.parse:") {
+					var indexOf = error.message.split(" ").indexOf("line");
+					// get line number
+					var errorOnLine = error.message.split(" ")[indexOf + 1];
+					// var errorOnColumn = 
+
+
+					var button = document.createElement("button");
+					button.innerText = "Go to";
+					button.classList.add("button");
+
+
+					button.onclick = () => {
+
+						var errorLineElement = lineNumberColumn.children[errorOnLine - 1];
+
+						errorLineElement.classList.add("errorLine");
+
+						mouseInside.textArea = true;
+						mouseInside.lineNumberColumn = true;
+
+						textArea.scrollTop = errorLineElement.scrollTop;
+					};
+
+					errorElement.appendChild(button);
+				}
+				
+				
+			}
+		};
+
+
+
+
+
+
+
+
+
+	// upload changes container
+		var uploadChangesContainer = document.createElement("div");
+
+		uploadChangesContainer.style.textAlign = "center";
+		uploadChangesContainer.style.marginTop = "25px";
+
+
+		var uploadChangesButton = document.createElement("button");
+		uploadChangesButton.classList.add("button");
+
+		uploadChangesButton.innerText = "Upload changes";
+
+
+		uploadChangesButton.onclick = () => {
+
+			// var configOrigin = document.getElementById("currentItemConfigTextArea").getAttribute("data-config-origin");
+
+			var editedConfig = document.getElementById("currentItemConfigTextArea").value;
+
+			if (confirm("Are you sure you want to upload?") == true) {
+				$.ajax({
+					url: "updateItemConfig.php",
+					type: "POST",
+					dataType: "JSON",
+					data: {itemConfig: editedConfig},
+					success: function(response){
+						alert(response);
+						modal.disable();
+					}
+				});
+			}
+
+		// check if both configs are valid json
+			// try {
+			// 	configOrigin = JSON.parse(configOrigin).config.items;
+			// } catch (error) {
+			// 	alert("Error in origin config, cannot do anymore... Please consider copying your changes and saving them elsewhere then come back and try again.\n\nIf you know how and want to... you can open the console and see the error.");
+			// 	console.error(error);
+			// 	return 1;
+			// }
+
+		// 	try {
+		// 		editedConfig = JSON.parse(editedConfig).items;
+		// 	} catch (error) {
+		// 		document.getElementById("errorCheckButton").click();
+		// 		return 1;
+		// 	}
+
+		// // clear error field
+		// 	if (document.getElementById("errorElement").getAttribute("data-error") == "1") {
+		// 		document.getElementById("errorElement").innerText = "";
+		// 	}
+
+
+		// compare changes between the original item config and the new item config
+/*
+upload new config instead of updating:
+if number of items change or if all items don't have the same dataName as origin
+if any price changes
+    check for case when price is int or string
+if any dataName changes
+if any interface is removed
+    identified by interface.dataName
+if any interface's choice is removed
+    identified by choice.dataName
+if any interface's type is changed
+*/
+/*
+			var checks = {
+				"dataName": ""
+			};
+
+
+			
+			for (var itemIndex = 0; itemIndex < ((configOrigin.length < editedConfig.length) ? configOrigin.length : editedConfig.length); itemIndex++) {
+				// console.log(itemIndex);
+			}
+
+
+			if (configOrigin.length < editedConfig.length) {
+				for (var itemIndex = 0; itemIndex < configOrigin.length; itemIndex++) {
+					console.log(itemIndex);
+				}
+			}
+			*/
+
+
+			
+
+		};
+
+
+		
+
+
+
+
+		textContainer.appendChild(currentItemConfigVersion);
+
+
+		
+		textContainer.appendChild(textEditorTable);
+		
+		textContainer.appendChild(cursorPositionElement);
+
+		textContainer.appendChild(resetButton);
+		textContainer.appendChild(beautifyButton);
+		textContainer.appendChild(errorCheckButton);
+
+		textContainer.appendChild(errorElement);
+
+
+
+		uploadChangesContainer.appendChild(uploadChangesButton);
+
+
+		this.content.appendChild(textContainer);
+
+		this.content.appendChild(uploadChangesContainer);
+	}
 }
 
 

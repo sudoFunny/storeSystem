@@ -402,3 +402,20 @@ function convertToSQLDateTime (inputDate) {
 	('00' + inputDate.getUTCMinutes()).slice(-2) + ':' + 
 	('00' + inputDate.getUTCSeconds()).slice(-2);
 }
+
+
+
+
+
+function getCurrentItemConfig () {
+	$.ajax({
+        url: "getCurrentItemConfig.php",
+        type: "POST",
+        dataType: "JSON",
+        success: function(itemConfig) {
+			itemConfig.config = JSON.parse(itemConfig.config);
+
+			return itemConfig;
+		}
+	});
+}

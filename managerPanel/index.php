@@ -27,15 +27,15 @@ $mySQLConnection = new MySQLConnection();
             
             
             <tr>
-                <td colspan=2><button class="thicc button" onclick="modal.enable(); modal.showGetSalesData()">Get sales data</button></td>
+                <td colspan=2><button class="thicc button" onclick="modal.enable(); modal.showGetSalesData();">Get sales data</button></td>
             </tr>
             
             
             <tr>
-                <td><button class="thicc" ondblclick="flushPools()">Flush pool</button></td>
+                <td><button class="thicc button" ondblclick="flushPools()">Flush pool</button></td>
                 <td>
             
-                <select id="pools" class="thicc">
+                <select id="pools" class="thicc button">
                     <option value="unfilled">Unfilled</option>
                 </select>
                 </td>
@@ -49,7 +49,7 @@ $mySQLConnection = new MySQLConnection();
         
         
         
-        <table style="margin-left: auto; margin-right: auto; text-align: center;">
+        <table style="margin-left: auto; margin-right: auto; text-align: center;" class="leaveMeAlone">
 			<tr>
                 <td colspan=2><p>Item Config Stuff</p></td>
             </tr>
@@ -67,9 +67,17 @@ $mySQLConnection = new MySQLConnection();
             
             
             <tr>
-                <td><span>Upload new Item Config</span></td>
+                <td><label for="editCurrentItemConfig">Edit current Item Config</label></td>
                 <td>
-					<input id="fileInput" type="file" name="file" accept=".json"/>
+					<button id="editCurrentItemConfig" onclick="modal.enable(); modal.editCurrentItemConfig();" class="thicc button">Edit current Item Config</button>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td><label for="uploadNewItemConfig">Upload new Item Config</label></td>
+                <td>
+					<input id="uploadNewItemConfig" type="file" name="file" accept=".json" class="button"/>
                 </td>
             </tr>
             
@@ -86,7 +94,7 @@ $mySQLConnection = new MySQLConnection();
 <script>
 
 function init () {
-	document.getElementById("fileInput").addEventListener("change", handleFileSelect, false);
+	document.getElementById("uploadNewItemConfig").addEventListener("change", handleFileSelect, false);
     // document.getElementById("rollBackOptions").selectedIndex = 0;
 
 
@@ -159,7 +167,7 @@ function handleFileSelect(event) {
 
 function handleFileLoad(event) {
 
-    if (document.getElementById("fileInput").files[0].name.split(".").pop() != "json") {
+    if (document.getElementById("uploadNewItemConfig").files[0].name.split(".").pop() != "json") {
         alert("File extension is not json");
         return;
     }
@@ -176,7 +184,7 @@ function handleFileLoad(event) {
 
         // Json is json
         var numberOfChars = 50;
-        if (confirm("Are you sure you want to upload the file \"" + document.getElementById("fileInput").files[0].name + "\" with the first " + numberOfChars + " characters being \"" + event.target.result.substring(0, numberOfChars) + "\"\n and having been last modified on " + new Date(document.getElementById("fileInput").files[0].lastModified)) == true) {
+        if (confirm("Are you sure you want to upload the file \"" + document.getElementById("uploadNewItemConfig").files[0].name + "\" with the first " + numberOfChars + " characters being \"" + event.target.result.substring(0, numberOfChars) + "\"\n and having been last modified on " + new Date(document.getElementById("uploadNewItemConfig").files[0].lastModified)) == true) {
             $.ajax({
                 url: "updateItemConfig.php",
                 type: "POST",
@@ -358,7 +366,52 @@ function removeAllChildren (parent) {
 
 
 
-tr:nth-child(even) {
+table:not(.leaveMeAlone) > tr:nth-child(even) {
     background-color: #bebebe;
+}
+
+
+
+.textEditorField {
+	border-style: none;
+	outline: none;
+}
+
+.textEditorField:focus {
+	/* outline: lightblue solid 2px; */
+}
+
+.textEditor > *, #currentItemConfigTextArea {
+	font-size: 14px;
+}
+
+.textEditor:focus-within {
+	outline: lightblue solid 2px;
+}
+
+
+
+.selectedLine {
+	background-color: orchid;
+	font-weight: bold;
+}
+
+.errorLine {
+	background-color: red;
+	font-weight: bold;
+}
+
+
+@keyframes fade {
+	0% {
+		color: rgba(0, 255, 0, 1);
+	}
+	100% {
+		color: rgba(0, 255, 0, 0);
+	}
+}
+
+.backgroundAnimated {
+	animation: fade 5s ease-in-out;
 }
 </style>
