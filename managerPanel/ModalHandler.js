@@ -65,6 +65,9 @@ class Modal {
 		fromDateTimeInput.id = "fromDateTimeInput";
 		fromDateTimeInput.step = 1; // show seconds will show... bit odd but ok I guess :/
 		fromDateTimeInput.max = convertDateTimeToHTMLFormat(new Date(Date.now()));
+
+
+		fromDateTimeInput.classList.add("dateTimeInput");
 		
 
 // to quick options
@@ -167,6 +170,8 @@ class Modal {
 		toDateTimeInput.id = "toDateTimeInput";
 		toDateTimeInput.step = 1; // show seconds will show... bit odd but ok I guess :/
 		toDateTimeInput.max = convertDateTimeToHTMLFormat(new Date(Date.now()));
+
+		toDateTimeInput.classList.add("dateTimeInput");
 
 // to quick options
 		var toOptions = JSON.parse('{\
@@ -860,21 +865,6 @@ class Modal {
 
 		lineNumberColumn.id = "lineNumberColumn";
 
-		// lineNumberColumn.classList.add("textEditor");
-
-		lineNumberColumn.style.borderStyle = "none";
-		lineNumberColumn.style.outline = "none";
-		lineNumberColumn.style.scrollbarWidth = "none";
-
-		lineNumberColumn.style.height = "500px";
-
-		lineNumberColumn.style.overflowX = "hidden";
-		lineNumberColumn.style.overflowY = "auto";
-		lineNumberColumn.style.textAlign = "right";
-
-		lineNumberColumn.style.cursor = "default";
-		lineNumberColumn.style.margin = "0px";
-
 
 		lineNumberColumn.addEventListener("mouseover", function (event) {
 			mouseInside.lineNumberColumn = true;
@@ -907,20 +897,6 @@ class Modal {
 		textArea.id = "currentItemConfigTextArea";
 
 		textArea.classList.add("textEditorField");
-		// textArea.classList.add("textEditor");
-
-		textArea.style.width = "100%";
-		textArea.style.resize = "none";
-		textArea.style.minHeight = "500px";
-
-		textArea.style.padding = "0px";
-		textArea.style.margin = "0px";
-
-		// no word wrap
-		textArea.style.whiteSpace = "pre";
-		textArea.style.overflowWrap = "normal";
-		textArea.style.overflowX = "scroll";
-
 
 		textArea.addEventListener("mouseover", function (event) {
 			mouseInside.textArea = true
@@ -937,30 +913,40 @@ class Modal {
 		};
 
 
-
-
 		// textArea.setAttribute("data-config-origin", JSON.stringify({}));
 
 		
 	// get cursor position
 		textArea.onclick = () => {
-			var cursorPosition = $("#currentItemConfigTextArea").prop("selectionStart");
+			var selectionStart = $("#currentItemConfigTextArea").prop("selectionStart");
 
-			var textBeforeCursorPosition = currentItemConfigTextArea.value.substring(0, cursorPosition);
+			var selectionEnd = $("#currentItemConfigTextArea").prop("selectionEnd");
 
-			var lines = textBeforeCursorPosition.split("\n");
+			var textBeforeSelectionStart = currentItemConfigTextArea.value.substring(0, selectionStart);
+			var textBeforeSelectionEnd = currentItemConfigTextArea.value.substring(0, selectionEnd);
 
-			cursorPositionElement.innerText = "Ln " + lines.length + ", Col " + parseInt(lines[lines.length - 1].length + 1);
+			var linesBeforeSelectionStart = textBeforeSelectionStart.split("\n");
+			var linesBeforeSelectionEnd = textBeforeSelectionEnd.split("\n");
+
+			cursorPositionElement.innerText = "Ln " + linesBeforeSelectionStart.length + ", Col " + parseInt(linesBeforeSelectionStart[linesBeforeSelectionStart.length - 1].length + 1);
+
+			if (selectionStart != selectionEnd) {
+				cursorPositionElement.innerText += " (" + (selectionEnd - selectionStart) + " selected)"
+			}
 
 
 			var selectedElements = document.getElementsByClassName("selectedLine");
-			
-			for (var elementIndex = 0; elementIndex < selectedElements.length; elementIndex++) {
+
+
+			for (var elementIndex = selectedElements.length - 1; elementIndex >= 0; elementIndex--) {
 				selectedElements[elementIndex].classList.remove("selectedLine");
 			}
 
 
-			lineNumberColumn.children[lines.length - 1].classList.add("selectedLine");
+			// show selected lines
+			for (var lineIndex = linesBeforeSelectionStart.length; lineIndex < linesBeforeSelectionEnd.length + 1; lineIndex++) {
+				lineNumberColumn.children[lineIndex - 1].classList.add("selectedLine");
+			}
 		};
 
 
@@ -994,13 +980,34 @@ class Modal {
 
 			// get cursor position
 				$("#currentItemConfigTextArea").on("keyup", function() {
-					var cursorPosition = $("#currentItemConfigTextArea").prop("selectionStart");
-		
-					var textBeforeCursorPosition = currentItemConfigTextArea.value.substring(0, cursorPosition);
-		
-					var lines = textBeforeCursorPosition.split("\n");
+					var selectionStart = $("#currentItemConfigTextArea").prop("selectionStart");
 
-					cursorPositionElement.innerText = "Ln " + lines.length + ", Col " + parseInt(lines[lines.length - 1].length + 1);
+					var selectionEnd = $("#currentItemConfigTextArea").prop("selectionEnd");
+
+					var textBeforeSelectionStart = currentItemConfigTextArea.value.substring(0, selectionStart);
+					var textBeforeSelectionEnd = currentItemConfigTextArea.value.substring(0, selectionEnd);
+
+					var linesBeforeSelectionStart = textBeforeSelectionStart.split("\n");
+					var linesBeforeSelectionEnd = textBeforeSelectionEnd.split("\n");
+
+					cursorPositionElement.innerText = "Ln " + linesBeforeSelectionStart.length + ", Col " + parseInt(linesBeforeSelectionStart[linesBeforeSelectionStart.length - 1].length + 1);
+
+					if (selectionStart != selectionEnd) {
+						cursorPositionElement.innerText += " (" + (selectionEnd - selectionStart) + " selected)"
+					}
+
+					var selectedElements = document.getElementsByClassName("selectedLine");
+
+
+					for (var elementIndex = selectedElements.length - 1; elementIndex >= 0; elementIndex--) {
+						selectedElements[elementIndex].classList.remove("selectedLine");
+					}
+
+
+					// show selected lines
+					for (var lineIndex = linesBeforeSelectionStart.length; lineIndex < linesBeforeSelectionEnd.length + 1; lineIndex++) {
+						lineNumberColumn.children[lineIndex - 1].classList.add("selectedLine");
+					}
 				});
 			}
 		});
@@ -1039,7 +1046,6 @@ class Modal {
 		var errorElement = document.createElement("span");
 
 		errorElement.id = "errorElement";
-		// errorElement.style.float = "left";
 		errorElement.style.color = "red";
 
 
@@ -1062,13 +1068,13 @@ class Modal {
 
 						// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig));
 		
-						document.getElementById("currentItemConfigTextArea").value = JSON.stringify(itemConfig.config, null, 4);
+						currentItemConfigTextArea.value = JSON.stringify(itemConfig.config, null, 4);
 		
-						document.getElementById("currentItemConfigVersion").innerText = "Current item config version: " + itemConfig.version;
+						currentItemConfigVersion.innerText = "Current item config version: " + itemConfig.version;
 
-						document.getElementById("cursorPositionElement").innerText = "Ln 1, Col 1";
+						cursorPositionElement.innerText = "Ln 1, Col 1";
 
-						document.getElementById("errorElement").innerText = "";
+						errorElement.innerText = "";
 					}
 				});
 			}
@@ -1083,13 +1089,13 @@ class Modal {
 		beautifyButton.onclick = () => {
 
 			try {
-				var json = JSON.parse(document.getElementById("currentItemConfigTextArea").value);
+				var json = JSON.parse(currentItemConfigTextArea.value);
 
-				document.getElementById("currentItemConfigTextArea").value = JSON.stringify(json, null, 4);
+				currentItemConfigTextArea.value = JSON.stringify(json, null, 4);
 
-				document.getElementById("errorElement").innerText = "";
+				errorElement.innerText = "";
 			} catch (error) {
-				document.getElementById("errorElement").innerText = "\nCannot beautify due to an error:\n" + error.message;
+				errorElement.innerText = "\nCannot beautify due to an error:\n" + error.message;
 			}
 		};
 
@@ -1105,15 +1111,15 @@ class Modal {
 
 			try {
 			// when no error
-				JSON.parse(document.getElementById("currentItemConfigTextArea").value);
+				JSON.parse(currentItemConfigTextArea.value);
 
 				errorElement.innerHTML = "<span class='backgroundAnimated'>No error</span>";
 
 				errorElement.setAttribute("data-error", 0);
 
 				var errorElements = document.getElementsByClassName("errorLine");
-			
-				for (var elementIndex = 0; elementIndex < errorElements.length; elementIndex++) {
+
+				for (var elementIndex = errorElements.length - 1; elementIndex >= 0; elementIndex--) {
 					errorElements[elementIndex].classList.remove("errorLine");
 				}
 
@@ -1125,43 +1131,53 @@ class Modal {
 			} catch (error) {
 			// when error
 
-
 				errorElement.setAttribute("data-error", 1);
 				errorElement.innerText = "\n" + error.message;
 				errorElement.scrollIntoView();
 
 				if (error.message.substring(0, 11) === "JSON.parse:") {
+						// clear all errors
+					var errorElements = document.getElementsByClassName("errorLine");
+
+					for (var elementIndex = errorElements.length - 1; elementIndex >= 0; elementIndex--) {
+						errorElements[elementIndex].classList.remove("errorLine");
+					}
+
+
 					var indexOf = error.message.split(" ").indexOf("line");
 					// get line number
 					var errorOnLine = error.message.split(" ")[indexOf + 1];
-					// var errorOnColumn = 
-
 
 					var button = document.createElement("button");
 					button.innerText = "Go to";
 					button.classList.add("button");
 
+					var offset = -5;
+
+					if (errorOnLine - 1 + offset < 0) {
+						offset = 0;
+					}
+
+					var errorLineElement = lineNumberColumn.children[errorOnLine - 1 + offset];
+
+					lineNumberColumn.children[errorOnLine - 1].classList.add("errorLine");
+
 
 					button.onclick = () => {
-
-						var errorLineElement = lineNumberColumn.children[errorOnLine - 1];
-
-						errorLineElement.classList.add("errorLine");
-
 						mouseInside.textArea = true;
 						mouseInside.lineNumberColumn = true;
 
-						textArea.scrollTop = errorLineElement.scrollTop;
+						textArea.scrollTop = errorLineElement.offsetTop;
+						lineNumberColumn.scrollTop = errorLineElement.offsetTop;
+
+						mouseInside.textArea = false;
+						mouseInside.lineNumberColumn = false;
 					};
 
 					errorElement.appendChild(button);
 				}
-				
-				
 			}
 		};
-
-
 
 
 
@@ -1186,20 +1202,30 @@ class Modal {
 
 			// var configOrigin = document.getElementById("currentItemConfigTextArea").getAttribute("data-config-origin");
 
-			var editedConfig = document.getElementById("currentItemConfigTextArea").value;
+			var editedConfig = currentItemConfigTextArea.value;
 
-			if (confirm("Are you sure you want to upload?") == true) {
-				$.ajax({
-					url: "updateItemConfig.php",
-					type: "POST",
-					dataType: "JSON",
-					data: {itemConfig: editedConfig},
-					success: function(response){
-						alert(response);
-						modal.disable();
-					}
-				});
+			try {
+				JSON.parse(editedConfig);
+
+				if (confirm("Are you sure you want to upload?") == true) {
+					$.ajax({
+						url: "updateItemConfig.php",
+						type: "POST",
+						dataType: "JSON",
+						data: {itemConfig: editedConfig},
+						success: function(response){
+							alert(response);
+							modal.disable();
+						}
+					});
+				}
+			} catch (error) {
+				alert("Invalid json");
+				
+				errorCheckButton.click();
 			}
+
+				
 
 		// check if both configs are valid json
 			// try {
@@ -1254,21 +1280,12 @@ if any interface's type is changed
 				}
 			}
 			*/
-
-
-			
-
 		};
-
-
-		
 
 
 
 
 		textContainer.appendChild(currentItemConfigVersion);
-
-
 		
 		textContainer.appendChild(textEditorTable);
 		
@@ -1279,7 +1296,6 @@ if any interface's type is changed
 		textContainer.appendChild(errorCheckButton);
 
 		textContainer.appendChild(errorElement);
-
 
 
 		uploadChangesContainer.appendChild(uploadChangesButton);

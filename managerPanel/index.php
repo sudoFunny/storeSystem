@@ -20,25 +20,12 @@ $mySQLConnection = new MySQLConnection();
                 <td colspan=2><h1>Manager Panel</h1></td>
             </tr>
             
-            <!-- <tr>
-                <td class="leaveMeAlone">Action</td>
-                <td class="leaveMeAlone">Option</td>
-            </tr> -->
-            
-            
             <tr>
                 <td colspan=2><button class="thicc button" onclick="modal.enable(); modal.showGetSalesData();">Get sales data</button></td>
             </tr>
             
-            
             <tr>
-                <td><button class="thicc button" ondblclick="flushPools()">Flush pool</button></td>
-                <td>
-            
-                <select id="pools" class="thicc button">
-                    <option value="unfilled">Unfilled</option>
-                </select>
-                </td>
+                <td colspan=2><button class="thicc button" ondblclick="flushPool()" title="Remove all orders yet to be filled">Flush order pool</button></td>
             </tr>
         </table>
         
@@ -77,7 +64,8 @@ $mySQLConnection = new MySQLConnection();
             <tr>
                 <td><label for="uploadNewItemConfig">Upload new Item Config</label></td>
                 <td>
-					<input id="uploadNewItemConfig" type="file" name="file" accept=".json" class="button"/>
+					<button onclick="document.getElementById('uploadNewItemConfig').click();" class="thicc button">Browse files</button>
+					<input id="uploadNewItemConfig" type="file" name="file" accept=".json" style="display: none;"/>
                 </td>
             </tr>
             
@@ -118,13 +106,13 @@ var table = document.getElementById("table");
 
 
 
-function flushPools () {
-    if (confirm("Are you sure you want to flush " + document.getElementById("pools").value + " pool(s)?") == true) {
+function flushPool () {
+    if (confirm("Are you sure you want to remove all orders yet to be filled?") == true) {
         $.ajax({
             url: "flushPool.php",
             type: "POST",
             dataType: "JSON",
-            data: {pool: document.getElementById("pools").value},
+            data: {pool: "unfilled"},
             success: function(response){
                 alert(response);
             }
@@ -177,15 +165,12 @@ function handleFileLoad(event) {
         return;
     }
 
+	try {
+		JSON.parse(event.target.result);
 
-    if (/^[\],:{}\s]*$/.test(event.target.result.replace(/\\["\\\/bfnrtu]/g, '@').
-        replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-        replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-
-        // Json is json
-        var numberOfChars = 50;
+		var numberOfChars = 50;
         if (confirm("Are you sure you want to upload the file \"" + document.getElementById("uploadNewItemConfig").files[0].name + "\" with the first " + numberOfChars + " characters being \"" + event.target.result.substring(0, numberOfChars) + "\"\n and having been last modified on " + new Date(document.getElementById("uploadNewItemConfig").files[0].lastModified)) == true) {
-            $.ajax({
+			$.ajax({
                 url: "updateItemConfig.php",
                 type: "POST",
                 dataType: "JSON",
@@ -196,14 +181,10 @@ function handleFileLoad(event) {
                 }
             });
         }
-
-
-    }
-    else {
-        // Json is not json
-        alert("Invaild json");
-        return;
-    }
+		
+	} catch (error) {
+		alert("Invaild json");
+	}
 }
 
 
@@ -227,11 +208,19 @@ function removeAllChildren (parent) {
 <style src="../includes/styles/LiberationFonts.css"></style>
 <style>
 
+td {
+	padding: 3px;
+}
+
 .button {
 	/* width: 100%; */
-	border-style: none;
+	border-style: ridge;
 	cursor: pointer;
-    padding: 5px 10px;
+	padding: 5px 10px;
+}
+
+.button:hover {
+	background-color: lightBlue;
 }
 
 .buttonPadding {
@@ -389,6 +378,36 @@ table:not(.leaveMeAlone) > tr:nth-child(even) {
 	outline: lightblue solid 2px;
 }
 
+#lineNumberColumn {
+	border-style: none;
+	outline: none;
+	scrollbar-width: none;
+	height: 500px;
+	
+	overflow-x: hidden;
+	overflow-y: auto;
+
+	text-align: right;
+	cursor: default;
+	margin: 0px;
+}
+
+/* no scrollbar on chrome */
+#lineNumberColumn::-webkit-scrollbar{
+	display: none;
+}
+
+
+#currentItemConfigTextArea {
+	width: 100%;
+	resize: none;
+	min-height: 500px;
+	padding: 0px;
+	margin: 0px;
+	white-space: pre;
+	overflow-wrap: normal;
+	overflow-x: auto;
+}
 
 
 .selectedLine {
@@ -399,6 +418,17 @@ table:not(.leaveMeAlone) > tr:nth-child(even) {
 .errorLine {
 	background-color: red;
 	font-weight: bold;
+}
+
+
+.dateTimeInput {
+    outline: none;
+    border-style: ridge;
+}
+
+.dateTimeInput:focus {
+    outline: lightblue solid 2px;
+    border: ridge lightBlue 2px;
 }
 
 

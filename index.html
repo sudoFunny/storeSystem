@@ -7,12 +7,55 @@
 </head>
 <body>
 
-	<p>Select a view</p>
-	<ul>
-		<li><a href="orderTaker">Order Taker</a></li>
-		<li><a href="orderView">Order View</a></li>
-		<li style="margin-top: 25px;"><a href="managerPanel">Manager Panel</a></li>
-	</ul>
+	<table class="tableOfViews">
+		<tbody>
+			<tr>
+				<th colspan="2" style="font-size: 25px;">Select a view</th>
+			</tr>
+			
+
+			<tr>
+				<td><button class="button" onclick="window.location='orderTaker'">Order Taker</button></td>
+				<td>A page to take orders</td>
+			</tr>
+
+			<tr>
+				<td><button class="button" onclick="window.location='orderView'">Order View</button></td>
+				<td>A page to view unfilled orders</td>
+			</tr>
+
+			<tr>
+				<td><button class="button" onclick="window.location='managerPanel'">Manager Panel</button></td>
+				<td>A page to edit the menu items and get sales data</td>
+			</tr>
+		</tbody>
+	</table>
 
 </body>
 </html>
+
+
+<style>
+.button {
+	width: 100%;
+	border-style: ridge;
+	cursor: pointer;
+	padding: 5px 10px;
+
+	font-size: 20px;
+}
+
+.button:hover {
+	background-color: lightBlue;
+}
+
+
+.tableOfViews {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+
+	font-size: 20px;
+}
+</style>
