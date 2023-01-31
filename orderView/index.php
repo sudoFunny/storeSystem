@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Order View</title>
 </head>
-<body style="font-family: LiberationSans;">
+<body>
 
     <div class="options">
 
@@ -51,6 +51,12 @@
 <script src="../includes/jquery.min.js"></script>
 
 <script type="text/javascript">
+
+/**
+ * 
+ * TODO
+ * Get item config if current is outdated
+ */
 
 
 
@@ -327,25 +333,26 @@ function getUnfilledPool () {
         success: function(orders) {
 
             var date = new Date();
+
+			var hours = date.getHours();
+			var minutes = date.getMinutes();
+			var ampm = hours >= 12 ? "PM" : "AM";
+			var seconds = date.getSeconds();
+			hours = hours % 12;
+			hours = hours ? hours : 12; // the hour '0' should be '12'
+			minutes = minutes < 10 ? "0" + minutes : minutes;
+
+			if (seconds < 9) seconds = "0" + seconds.toString();
+			if (hours < 9) hours = "0" + hours.toString();
             
             if (orders != 0) {
                 updateView(orders);
-				var hours = date.getHours();
-				var minutes = date.getMinutes();
-				var ampm = hours >= 12 ? "pm" : "am";
-				var seconds = date.getSeconds();
-				hours = hours % 12;
-				hours = hours ? hours : 12; // the hour '0' should be '12'
-				minutes = minutes < 10 ? "0" + minutes : minutes;
-
-				if (seconds < 9) seconds = "0" + seconds.toString();
-				if (hours < 9) hours = "0" + hours.toString();
 
 				updatedTime.innerHTML = hours + ":" + minutes + ":" + seconds + " " + ampm;
             }
             else {
                 updatedTime.innerHTML = "";
-                table.innerHTML = "<p>Fetching pool data failed, no data to return<br><br>Time: " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "</p>";
+                table.innerHTML = "<p>Fetching pool data failed, no data to return<br><br>Time: " + hours + ":" + minutes + ":" + seconds + " " + ampm + "</p>";
             }
         }
     });
@@ -354,76 +361,103 @@ function getUnfilledPool () {
 </script>
 
 
-<style src="../includes/styles/LiberationFonts.css"></style>
 <style>
 
-p, span {
-    font-size: 20px;
-}
+	:root {
+		--main-button-border: 2px ridge rgb(117, 116, 122);
+		--main-button-border-color: rgb(117, 116, 122);
+	}
 
-.container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 300px);
-    grid-row-gap: 20px;
-    grid-column-gap: 10px;
-    justify-content: left;
-    margin: 0 auto;
-    list-style: none;
-}
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Regular.ttf");
+	}
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Bold.ttf");
+		font-weight: bold;
+	}
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Italic.ttf");
+		font-style: italic;
+	}	
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-BoldItalic.ttf");
+		font-weight: bold;
+		font-style: italic;
+	}
 
-.container > .item {
-    padding: 10px;
-    /* border-style: solid; */
-    /* border-width: 5px; */
-	border-style: ridge;
-	border-color: black;
-}
+	* {
+		font-family: "LiberationSans";
+	}
 
+	button {
+		cursor: pointer;
+		background-color: white;
+		border: var(--main-button-border);
+	}
 
+	p, span {
+		font-size: 20px;
+	}
 
-#updateDelayInput:invalid {
-	background-color: red;
-}
+	.container {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, 300px);
+		grid-row-gap: 20px;
+		grid-column-gap: 10px;
+		justify-content: left;
+		margin: 0 auto;
+		list-style: none;
+	}
 
-input[type="checkbox"] {
-	cursor: pointer;
-	width: 20px;
-	height: 20px;
-}
+	.container > .item {
+		padding: 10px;
+		/* border-style: solid; */
+		/* border-width: 5px; */
+		/* border-style: ridge;
+		border-color: black; */
 
-input[type="checkbox"]:hover {
-	background-color: lightBlue;
-}
-
-.options > * {
-	font-size: 20px;
-}
-
-.options > span {
-	cursor: default;
-}
-
-button {
-	cursor: pointer;
-	border-style: ridge;
-	border-color: black;
-}
-
-button:hover {
-	background-color: lightBlue;
-}
-
-
-.item > button {
-	padding: 5px;
-	font-size: 15px;
-}
-
-.item > * {
-	font-size: 20px;
-}
+		border: var(--main-button-border);
+	}
 
 
 
+	#updateDelayInput:invalid {
+		background-color: red;
+	}
 
+	input[type="checkbox"] {
+		cursor: pointer;
+		width: 20px;
+		height: 20px;
+	}
+
+	input[type="checkbox"]:hover {
+		background-color: lightBlue;
+	}
+
+	.options > * {
+		font-size: 20px;
+	}
+
+	.options > span {
+		cursor: default;
+	}
+
+	button:hover {
+		background-color: lightBlue;
+	}
+
+
+	.item > button {
+		padding: 5px;
+		font-size: 15px;
+	}
+
+	.item > * {
+		font-size: 20px;
+	}
 </style>

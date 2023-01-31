@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order Taker</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
+	<title>Order Taker</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
 </head>
-<body onload="checkURL()" style="font-family: LiberationSans;">
-    <div id="container"></div>
+<body onload="init();">
+	<div id="container"></div>
+
+	<div id="optionsContainer">
+		<details class="options">
+			<summary class="summary">Options</summary>
+			<div id="optionsContent"></div>
+		</details>
+	</div>
+
+	<div id="notificationArea"></div>
 </body>
 </html>
 
@@ -15,126 +24,50 @@
 
 <script>
 
+// important variables
+	var config = null, itemConfigVersion = null;
 
-var config = JSON.parse(<?php
-include("../includes/mySQLConnection.php");
-$mySQLConnection = new MySQLConnection();
-$response = $mySQLConnection->query("SELECT version, config FROM itemConfigs ORDER BY version DESC LIMIT 1;");
+	var order = [];
 
-$itemConfigVersion = "null";
+	var layouts = ["select", "detail"]; // possible page layouts
 
-while($row = mysqli_fetch_assoc($response)) {
-	$itemConfigVersion = $row["version"];
-	echo json_encode($row["config"]);
-}
-?>);
-
-var itemConfigVersion = <?php echo $itemConfigVersion;?>;
+	var mainContainer = document.getElementById("container");
 
 
-/**
- * 
- * What do you think it does?
- * It does what it's named, else console.error and returns false.
- * 
- */
-config.getItemByDataName = function(dataName) {
-    for (var i = 0; i < config.items.length; i++) {
+	async function init () {
+		fillOptions();
+		await getItemConfig();
+		goToSelectPage();
+	}
 
-        if (config.items[i].dataName === dataName) {
-            return config.items[i];
-        }
-    }
-
-    // console.error('Did not find an item with dataName "' + dataName + '"');
-    return false;
-}
-
-
-
-for (var i = 0; i < config.items.length; i++) {
-
-    config.items[i].interface.getInterfaceWithDataName = function(dataName) {
-
-        for (var p = 0; p < this.length; p++) {
-            
-            if (this[p].dataName === dataName) {
-                return this[p];
-            }
-        }
-
-        // console.error('Did not find an interface with dataName "' + dataName + '"');
-        return false;
-    }
-
-
-
-
-    for (var o = 0; o < config.items[i].interface.length; o++) {
-
-        config.items[i].interface[o].getChoiceWithDataName = function(dataName) {
-
-            if (this.choices != undefined) {
-                for (var p = 0; p < this.choices.length; p++) {
-                    
-                    if (this.choices[p].dataName === dataName) {
-                        return this.choices[p];
-                    }
-                }
-            }
-
-            // console.error('Did not find a choice with dataName "' + dataName + '"');
-            return false;
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    var order = [];
-
-
-    var mainContainer = document.getElementById("container");
 
 
     function showDetail (index, appendant) {
         // removeAllChildren(mainContainer);
 
 		if (index >= config.items.length) {
-			if (index < 9000) {
+			var suffix = "";
+			var j = parseInt(index) + 1 % 10,
+				k = parseInt(index) + 1 % 100;
+			if (j == 1 && k != 11) {
+				suffix = "st";
+			}
+			if (j == 2 && k != 12) {
+				suffix = "nd";
+			}
+			if (j == 3 && k != 13) {
+				suffix = "rd";
+			}
+			suffix = "th";
 
-				var suffix = "";
-				var j = parseInt(index) + 1 % 10,
-					k = parseInt(index) + 1 % 100;
-				if (j == 1 && k != 11) {
-					suffix = "st";
-				}
-				if (j == 2 && k != 12) {
-					suffix = "nd";
-				}
-				if (j == 3 && k != 13) {
-					suffix = "rd";
-				}
-				suffix = "th";
-
-				alert("There are only " + config.items.length + " items, but you have elected to search for a " + (parseInt(index) + 1) + suffix + " item.\nI commend your research and I hope one day you'll find that every so elusive " + (parseInt(index) + 1) + suffix + " item!");
-				window.location.href = "#?view=select";
+			if (index > 9000 - 1) {
+				document.body.setAttribute("layout", "funny");
+				mainContainer.innerHTML = "<h2 style='text-align: center; max-width: 50%; margin-left: auto; margin-right: auto; transform: translate(-50%, -50%); position: absolute; top: 50%; left: 50%;'>The number of items isn't OVER 9,000!<br><button style='text-align: center; font-size: 20px; padding: 10px; margin-top: 25px;' onclick='goToSelectPage();'>Go to select page</button></h2>";
 				return 0;
 			}
 			else {
-				alert("The number of items isn't over 9,000 :sadge:");
-				window.location.href = "#?view=select";
+				document.body.setAttribute("layout", "funny");
+				mainContainer.innerHTML = "<h2 style='text-align: center; max-width: 50%; margin-left: auto; margin-right: auto; transform: translate(-50%, -50%); position: absolute; top: 50%; left: 50%;'>There are only " + config.items.length + " items, however you have elected to search for a " + (parseInt(index) + 1) + suffix + " item.\nI commend your research and I hope one day you'll find that every so elusive " + (parseInt(index) + 1) + suffix + " item!<br><button style='text-align: center; font-size: 20px; padding: 10px; margin-top: 25px;' onclick='goToSelectPage();'>Go to select page</button></h2>";
 				return 0;
 			}
 		}
@@ -620,34 +553,178 @@ for (var i = 0; i < config.items.length; i++) {
 
 
 
+	function getItemConfig () {
+
+		return new Promise((resolve, reject) => {
+
+			$.ajax({
+			url: "getItemConfig.php",
+			type: "POST",
+			dataType: "JSON",
+			success: function (response) {
+				config = JSON.parse(response.config);
+				itemConfigVersion = response.version;
+
+				/**
+				 * 
+				 * What do you think it does?
+				 * It does what it's named, else console.error and returns false.
+				 * 
+				 */
+				config.getItemByDataName = function (dataName) {
+					for (var i = 0; i < config.items.length; i++) {
+
+						if (config.items[i].dataName === dataName) {
+							return config.items[i];
+						}
+					}
+
+					return false;
+				}
+
+				for (var i = 0; i < config.items.length; i++) {
+
+					config.items[i].interface.getInterfaceWithDataName = function (dataName) {
+
+						for (var p = 0; p < this.length; p++) {
+							
+							if (this[p].dataName === dataName) {
+								return this[p];
+							}
+						}
+
+						return false;
+					}
+
+					for (var o = 0; o < config.items[i].interface.length; o++) {
+
+						config.items[i].interface[o].getChoiceWithDataName = function (dataName) {
+
+							if (this.choices != undefined) {
+								for (var p = 0; p < this.choices.length; p++) {
+									
+									if (this.choices[p].dataName === dataName) {
+										return this.choices[p];
+									}
+								}
+							}
+
+							return false;
+						}
+					}
+				}
+
+				if (!layouts.includes(document.body.getAttribute("layout"))) {
+					goToSelectPage();
+				}
+				else
+					changeLayout({view: document.body.getAttribute("layout")});
+	
+				resolve();
+			}
+			});
+		});
+	}
 
 
-function submitOrder () {
-    if (order.length == 0) {
-        alert("Empty order");
-        return;
-    }
 
-    document.getElementById("submitOrderButton").innerText = "Submiting";
+	function submitOrder () {
+		if (order.length <= 0) {
+			// alert("Empty order");
+			// return;
+		}
 
-    $.ajax({
-        url: "submitOrder.php",
-        type: "POST",
-        dataType: "JSON",
-        data: {data: JSON.stringify(order), itemConfigVersion: itemConfigVersion},
-        success: function(response){
-            console.log(response);
-            
-            // Clear newOrder
-            order = [];
-            changeLayout({view: "select"});
+		document.getElementById("submitOrderButton").innerText = "Submiting";
 
-            alert(response.message);
-        }
-    });
-}
+		$.ajax({
+			url: "submitOrder.php",
+			type: "POST",
+			dataType: "JSON",
+			data: {data: JSON.stringify(order), itemConfigVersion: itemConfigVersion},
+			success: function(response) {
+
+				if (response.updateClientItemConfig) {
+					// Tell client new menu version is available, suggesting to update it by clicking "options > update menu button"
+
+					// sendNotification(0.5, 0.5, 0, "New menu available, you can update your current menu by clicking on \"Options\" then click the \"Update menu\" button");
+					sendNotification(0.5, 0.5, 0, "You are using an older menu <button onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification(1, 1, 5, 'Menu updated'); button.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>")
+				}
+				
+				// Clear order
+				order = [];
+				changeLayout({view: "select"}); // IDK why I didn't just call goToSelectPage() but I'm sure there is a reason?
+
+				sendNotification(0.5, 0.5, 2, "Order id is " + response.id);
+			}
+		});
+	}
 
 
+
+
+
+
+
+
+
+	// in seconds, closeAfter == 0 == never close
+	function sendNotification (moveFor, leaveFor, closeAfter, message) {
+
+		var marquee = document.createElement("div");
+
+		marquee.style.overflow = "hidden";
+		marquee.style.fontSize = "18px";
+		marquee.style.float = "left";
+		marquee.style.maxWidth = "25%";
+		marquee.style.minWidth = "250px";
+		marquee.style.backgroundColor = "white";
+
+
+		var marqueeContent = document.createElement("div");
+
+		marqueeContent.style.position = "relative";
+		marqueeContent.style.animation = "marqueeRightIn cubic-bezier(.79,.14,.15,.86) " + moveFor + "s";
+		marqueeContent.style.border = "var(--main-button-border)";
+
+
+		var marqueeClose = document.createElement("span");
+		marqueeClose.innerHTML = "&times;";
+
+		marqueeClose.style.fontSize = "24px";
+		marqueeClose.style.fontWeight = "bold";
+		marqueeClose.style.float = "right";
+		marqueeClose.style.marginLeft = "100%";
+		marqueeClose.style.margin = "5px";
+		marqueeClose.style.cursor = "pointer";
+
+		marqueeClose.onclick = () => {
+			marqueeContent.style.animation = "marqueeRightOut cubic-bezier(.79,.14,.15,.86) " + leaveFor + "s";
+			setTimeout(() => {
+				removeAllChildren(marquee);
+				marquee.remove();
+			}, leaveFor * 1000);
+		};
+
+
+		var marqueeText = document.createElement("div");
+
+		marqueeText.innerHTML = message;
+
+		marqueeText.style.padding = "10px";
+
+		marqueeContent.appendChild(marqueeClose);
+		marqueeContent.appendChild(marqueeText);
+
+		marquee.appendChild(marqueeContent);
+		document.getElementById("notificationArea").appendChild(marquee);
+
+
+		if (closeAfter != 0) {
+			setTimeout(() => {
+				marqueeClose.click();
+			}, closeAfter * 1000);
+		}
+	}
 
 
 
@@ -669,11 +746,42 @@ function submitOrder () {
 </script>
 
 
-<style src="../includes/styles/LiberationFonts.css"></style>
-<style type="text/css">
+<style>
+
+	:root {
+		--main-button-border: 2px ridge rgb(117, 116, 122);
+		--main-button-border-color: rgb(117, 116, 122);
+	}
+
+
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Regular.ttf");
+	}
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Bold.ttf");
+		font-weight: bold;
+	}
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-Italic.ttf");
+		font-style: italic;
+	}	
+	@font-face {
+		font-family: LiberationSans;
+		src: url("../includes/styles/fonts/LiberationSans-BoldItalic.ttf");
+		font-weight: bold;
+		font-style: italic;
+	}
+
+	* {
+		font-family: "LiberationSans";
+	}
+
+
     .available {
       cursor: pointer;
-      //text-decoration: underline;
     }
     
     .unavailable {
@@ -697,16 +805,17 @@ function submitOrder () {
     .buttonGrid > button {
       width: 100%;
       height: 100%;
-      /* border: none; */
       border-style: ridge;
     
       min-width: 100px;
-      //max-width: 200px;
     }
     
-    button {
-        border-style: ridge;
-        cursor: pointer;
+	button {
+		cursor: pointer;
+
+		background-color: white;
+
+		border: var(--main-button-border);
     }
     
     // for checkbox css
@@ -797,6 +906,9 @@ function submitOrder () {
 
     .numberContainer > * {
         font-size: 30px;
+        background-color: white;
+
+		border-color: var(--main-button-border-color);
     }
 
     .numberContainer > :first-child {
@@ -828,30 +940,6 @@ function submitOrder () {
 	#pricePerUnitNumberInput {
 		font-size: 30px;
 	}
-
-
-
-
-
-.editTable {
-  border-spacing: 0px;
-  font-size: 24px;
-  margin-top: 50px;
-}
-
-.editTable > tr:nth-child(even) {
-  background-color: lightgray;
-}
-
-.editTable > tr:hover {
-  background-color: lightblue;
-}
-
-
-body > * {
-    font-family: "LiberationSans";
-}
-
 
 
 
@@ -898,4 +986,92 @@ body > * {
 		/* width: 25%; */
 		float: right;
 	}
+
+
+
+	#optionsContainer {
+		position: fixed;
+		bottom: 0px;
+		right: 0px;
+		padding: 5px;
+		z-index: 9999;
+		background-color: white;
+	}
+
+
+	.options {
+		border: var(--main-button-border);
+		padding: 0.5em 0.5em 0;
+	}
+
+	.options > *:not(.summary) > * {
+		font-size: 16px;
+	}
+
+	.options > *:not(.summary) > button {
+		padding: 6px;
+		margin-bottom: 10px;
+	}
+
+	.options > *:not(.summary) > :last-child {
+		margin-bottom: 0px;
+	}
+
+	.summary {
+		font-weight: bold;
+		margin: -0.5em -0.5em 0;
+		padding: 0.5em;
+
+		font-size: 18px;
+
+		cursor: pointer;
+		/* list-style: none; */
+		text-align: center;
+	}
+
+	.summary::marker {
+		/* content: "→"; */
+	}
+
+	.options[open] > .summary::marker {
+		/* content: "↓"; */
+	}
+
+	.options[open] {
+		padding: 0.5em;
+	}
+
+	.options[open] .summary {
+		border-bottom: var(--main-button-border);
+		margin-bottom: 0.5em;
+	}
+
+
+	@keyframes marqueeRightIn {
+		0% {
+			right: 100%
+		}
+		100% {
+			right: 0%
+		}
+	}
+
+	@keyframes marqueeRightOut {
+		0% {
+			right: 0%
+		}
+		100% {
+			right: 100%
+		}
+	}
+	
+	@keyframes fadeOut {
+		0% {
+			opacity: 100%;
+		}
+		100% {
+			opacity: 0%
+		}
+	}
+	
 </style>

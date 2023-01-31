@@ -1,13 +1,31 @@
 <?php
 include("../includes/mySQLConnection.php");
 $mySQLConnection = new MySQLConnection();
-// $response = $mySQLConnection->query("SELECT version, dateTime FROM itemConfigs;");
+
+
+/**
+ * TODO
+ * X remove stop using unfilled.json to get id and stop using it altogether
+ * _ remove donations
+ */
+
+
+
+
 
 $json = $_POST["data"];
 $clientItemConfigVersion = $_POST["itemConfigVersion"];
 
 // Incoming json
 $parsedJson = json_decode($json, false);
+
+// Generate order id based on database stuff... completed, orderId
+// $response = $mySQLConnection->query("SELECT orderId, completed FROM orders;");
+
+// $thisOrderId = 1;
+// while ($row = mysqli_fetch_assoc($response)) {
+// 	if ($row["orderId"] >= $thisOrderId && $row["completed"] != 1) $thisOrderId = $row["orderId"] + 1;
+// }
 
 // Unfilled order json
 $unfilledJson = json_decode(file_get_contents("../orderPools/unfilled.json"));
@@ -36,14 +54,23 @@ for ($i = 0; $i < count($unfilledJson); $i++) {
 
 date_default_timezone_set("UTC");
 
-$dateTime = date("Y-n-d h:i:s");
+$dateTime = gmdate("Y-m-d H:i:s");
 if ($clientItemConfigVersion == "null") {
-	$mySQLConnection->query("INSERT INTO orders (orderId, itemConfigVersion, dateTime, completed, contents) VALUES ('" . $max["id"] . "', '$dateTime', 0, '$json')");
+	$mySQLConnection->query("INSERT INTO orders (orderId, dateTime, completed, contents) VALUES ('" . $max["id"] . "', '$dateTime', 0, '$json')");
 }
 else
 	$mySQLConnection->query("INSERT INTO orders (orderId, itemConfigVersion, dateTime, completed, contents) VALUES ('" . $max["id"] . "', '$clientItemConfigVersion', '$dateTime', 0, '$json')");
 
 
+// check if client item config version is out of date
+$response = $mySQLConnection->query("SELECT version FROM itemConfigs ORDER BY version DESC LIMIT 1;");
+
+$currentItemConfigVersion = mysqli_fetch_assoc($response)["version"];
+$updateClientItemConfig = false;
+
+if ($currentItemConfigVersion != null && $clientItemConfigVersion != "" && intval($currentItemConfigVersion) > intval($clientItemConfigVersion)) {
+	$updateClientItemConfig = true;
+}
 
 
 
@@ -59,5 +86,8 @@ fclose($file);
 
 
 // Return customer id
-echo '{"message": "Order number is ' . $max["id"] . '"}';
+$dataToReturn["id"] = $max["id"];
+$dataToReturn["updateClientItemConfig"] = $updateClientItemConfig;
+
+echo json_encode($dataToReturn);
 ?>

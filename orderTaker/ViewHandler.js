@@ -7,51 +7,32 @@
  * 
  * KEYWORDS YOU CANNOT USE FOR dataName
  * "quantity"
+ * 
+ * idk if ^ is true... :/
  */
 
 
-
-// URL hash
-window.addEventListener('hashchange', function (event) {
-    checkURL(event);
-});
-
-
-
-
-
-function checkURL () {
-    // if no hash make view hash
-    if (window.location.hash === '') {
-        window.location = window.location + "#?view=select";
-    }
-    
-    // if hash, remove it
-    if (window.location.hash.split('#').length - 1 > 1) {
-        window.location = "#?view=select";
-    }
-
-    // Thank you nice person on stackoverflow! My head bean no big :/ 
-    var query = window.location.hash.split('?')[1]
-    .split("&")
-    .map(v => v.split("="))
-    .reduce( (pre, [key, value]) => ({ ...pre, [key]: value }), {} );
-
-    changeLayout(query);
+function goToSelectPage () {
+	changeLayout({view: "select"});
 }
 
 
 
-
-
 function changeLayout (query) {
+	document.body.setAttribute("layout", query.view);
+    // if (query.view === "select") {
+    //     document.getElementById("optionsContainer").style.display = "block";
+    // }
+    // else
+    //     document.getElementById("optionsContainer").style.display = "none";
+
+
     if (query.view === "detail") {
         removeAllChildren(mainContainer);
 
         var div = document.createElement("div");
 
         showDetail(query.item, div);
-        // console.log(query.item);
     }
     else if (query.view === "select") {
         removeAllChildren(mainContainer);
@@ -94,9 +75,6 @@ function changeLayout (query) {
 
         updateOrderList(document.getElementById("orderList"));
     }
-    else if (query.view === "edit") {
-        removeAllChildren(mainContainer);
-    }
 }
 
 
@@ -129,12 +107,7 @@ function createItemList (appendant) {
 			button.setAttribute("data-item-config-index", i);
 
             button.onclick = (ele) => {
-                //changeView(ele);
-                if (window.location.href.includes('#')) {
-                    window.location = window.location.href.split('#')[0] + "#?view=detail&item=" + ele.target.getAttribute("data-item-config-index");
-                }
-                else
-                    window.location = window.location + "#?view=detail&item=" + ele.target.getAttribute("data-item-config-index");
+				changeLayout({view: "detail", item: ele.target.getAttribute("data-item-config-index")});
             };
         }
 
@@ -383,17 +356,6 @@ function updateOrderList (appendant) {
 
 
 
-function goToSelectPage () {
-	if (window.location.href.includes('#')) {
-		window.location = window.location.href.split('#')[0] + "#?view=select";
-	}
-	else
-		window.location = window.location + "#?view=select";
-}
-
-
-
-
 
 
 
@@ -603,4 +565,69 @@ function makeAddToOrderButton (item, appendant) {
 	td.appendChild(addToOrderButton);
 	tr.appendChild(td);
     appendant.appendChild(tr);
+}
+
+
+
+function fillOptions () {
+	var optionsContent = document.getElementById("optionsContent");
+
+	
+// update menu button / get newest menu version
+	var updateMenuButton = document.createElement("button");
+	updateMenuButton.id = "updateMenuButton";
+	updateMenuButton.innerText = "Update menu";
+	updateMenuButton.title = "Gets newest menu version";
+
+	updateMenuButton.style.width = "100%";
+
+	updateMenuButton.onclick = async () => {
+		await getItemConfig();
+        sendNotification(0.5, 0.5, 5, "Menu updated");
+	};
+
+
+// clear all notification
+	var clearAllNotificationsButton = document.createElement("button");
+	clearAllNotificationsButton.innerText = "Clear all notifications";
+
+	clearAllNotificationsButton.style.width = "100%";
+
+	clearAllNotificationsButton.onclick = () => {
+
+		var leaveFor = 0.5;
+
+		// only remove current children
+		var children = document.getElementById("notificationArea").children;
+
+		for (var childIndex = 0; childIndex < children.length; childIndex++) {
+			children[childIndex].style.animation = "fadeOut cubic-bezier(.79,.14,.15,.86) " + leaveFor + "s";
+			children[childIndex].classList.add("removeMe");
+		}
+
+		window.scroll({
+			top: 0,
+			behavior: "smooth"
+		});
+
+		setTimeout(() => {
+
+			var toRemove = document.getElementsByClassName("removeMe");
+			for (var i = toRemove.length - 1; i >= 0; i--) {
+				toRemove[i].remove();
+			}
+			
+			document.getElementById("notificationArea").style.opacity = "100%";
+			document.getElementById("notificationArea").style.animation = "";
+		}, leaveFor * 1000);
+	};
+	
+
+
+
+
+
+
+	optionsContent.appendChild(updateMenuButton);
+	optionsContent.appendChild(clearAllNotificationsButton);
 }
