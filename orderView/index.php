@@ -352,7 +352,7 @@ function getUnfilledPool () {
             }
             else {
                 updatedTime.innerHTML = "";
-                table.innerHTML = "<p>Fetching pool data failed, no data to return<br><br>Time: " + hours + ":" + minutes + ":" + seconds + " " + ampm + "</p>";
+                table.innerHTML = "<p>No unfilled orders<br><br>Time: " + hours + ":" + minutes + ":" + seconds + " " + ampm + "</p>";
             }
         }
     });
