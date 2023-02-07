@@ -4,7 +4,7 @@
 	<title>Order Taker</title>
 	<meta name='viewport' content='width=device-width, initial-scale=1'>
 </head>
-<body onload="init();">
+<body>
 	<div id="container"></div>
 
 	<div id="optionsContainer">
@@ -33,17 +33,16 @@
 
 	var mainContainer = document.getElementById("container");
 
-
-	async function init () {
+	window.onload = async () => {
 		fillOptions();
 		await getItemConfig();
 		goToSelectPage();
-	}
+	};
 
 
 
-    function showDetail (index, appendant) {
-        // removeAllChildren(mainContainer);
+	function showDetail (index, appendant) {
+		// removeAllChildren(mainContainer);
 
 		if (index >= config.items.length) {
 			var suffix = "";
@@ -558,7 +557,7 @@
 		return new Promise((resolve, reject) => {
 
 			$.ajax({
-			url: "getItemConfig.php",
+			url: "../includes/getItemConfig.php",
 			type: "POST",
 			dataType: "JSON",
 			success: function (response) {
@@ -630,8 +629,8 @@
 
 	function submitOrder () {
 		if (order.length <= 0) {
-			// alert("Empty order");
-			// return;
+			sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 2, message: "Order is empty"});
+			return;
 		}
 
 		document.getElementById("submitOrderButton").innerText = "Submiting";
@@ -645,16 +644,14 @@
 
 				if (response.updateClientItemConfig) {
 					// Tell client new menu version is available, suggesting to update it by clicking "options > update menu button"
-
-					// sendNotification(0.5, 0.5, 0, "New menu available, you can update your current menu by clicking on \"Options\" then click the \"Update menu\" button");
-					sendNotification(0.5, 0.5, 0, "You are using an older menu <button onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification(1, 1, 5, 'Menu updated'); button.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>")
+					sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 0, message: "You are using an older menu <button style='padding: 5px;' onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification({travelTime: {in: 1, out: 1}, closeAfter: 2, message: 'Menu updated'}); button.parentElement.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>"});
 				}
 				
 				// Clear order
 				order = [];
 				changeLayout({view: "select"}); // IDK why I didn't just call goToSelectPage() but I'm sure there is a reason?
 
-				sendNotification(0.5, 0.5, 2, "Order id is " + response.id);
+				// sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "The id of the Order submited was " + response.id});
 			}
 		});
 	}
@@ -668,61 +665,168 @@
 
 
 	// in seconds, closeAfter == 0 == never close
-	function sendNotification (moveFor, leaveFor, closeAfter, message) {
+	// sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "hi"});
+	function sendNotification (...args) {
+		
+		if (typeof args[0] != "object") {
+			console.error("When sending a notification please send an object with all of the following:\ntravelTime:\n{\n  in: <seconds>,\n  out: <seconds>\n},\ncloseAfter: <seconds, 0 for infinite>,\nmessage: <string>");
+			return 0;
+		}
 
-		var marquee = document.createElement("div");
+		var notificationObject = args[0];
 
-		marquee.style.overflow = "hidden";
-		marquee.style.fontSize = "18px";
-		marquee.style.float = "left";
-		marquee.style.maxWidth = "25%";
-		marquee.style.minWidth = "250px";
-		marquee.style.backgroundColor = "white";
+		var wasErrorInNotificationObject = false;
+
+		if (!Object.keys(notificationObject).includes("travelTime")) {
+			notificationObject["travelTime"] = {in: 0.5, out: 0.5};
+			wasErrorInNotificationObject = true;
+		}
+		else {
+			if (!Object.keys(notificationObject["travelTime"]).includes("in")) {
+				notificationObject["travelTime"]["in"] = 0.5;
+				wasErrorInNotificationObject = true;
+			}
+
+			if (!Object.keys(notificationObject["travelTime"]).includes("out")) {
+				notificationObject["travelTime"]["out"] = 0.5;
+				wasErrorInNotificationObject = true;
+			}
+		}
+
+		if (!Object.keys(notificationObject).includes("closeAfter")) {
+			notificationObject["closeAfter"] = 2;
+			wasErrorInNotificationObject = true;
+		}
+
+		if (wasErrorInNotificationObject) console.warn("When sending a notification please send an object with all of the following:\ntravelTime:\n{\n  in: <seconds>,\n  out: <seconds>\n},\ncloseAfter: <seconds, 0 for infinite>,\nmessage: <string>");
+		
+		if (!Object.keys(notificationObject).includes("message")) {
+			console.error("No message attached to notification object");
+			return 0;
+		}
+
+		if (notificationObject["message"].length == 0) {
+			console.error("Message attached to notification object was empty");
+			return 0;
+		}
 
 
-		var marqueeContent = document.createElement("div");
-
-		marqueeContent.style.position = "relative";
-		marqueeContent.style.animation = "marqueeRightIn cubic-bezier(.79,.14,.15,.86) " + moveFor + "s";
-		marqueeContent.style.border = "var(--main-button-border)";
 
 
-		var marqueeClose = document.createElement("span");
-		marqueeClose.innerHTML = "&times;";
+		
+		var notification = document.createElement("div");
 
-		marqueeClose.style.fontSize = "24px";
-		marqueeClose.style.fontWeight = "bold";
-		marqueeClose.style.float = "right";
-		marqueeClose.style.marginLeft = "100%";
-		marqueeClose.style.margin = "5px";
-		marqueeClose.style.cursor = "pointer";
+		notification.classList.add("notification");
 
-		marqueeClose.onclick = () => {
-			marqueeContent.style.animation = "marqueeRightOut cubic-bezier(.79,.14,.15,.86) " + leaveFor + "s";
+
+		notification.style.animation = "notificationWidthIn cubic-bezier(.79,.14,.15,.86) " + notificationObject.travelTime.in + "s";
+
+
+		var notificationContent = document.createElement("div");
+
+		notificationContent.style.position = "relative";
+		notificationContent.style.border = "var(--main-button-border)";
+
+
+		var notificationClose = document.createElement("span");
+		notificationClose.innerHTML = "&times;";
+
+		notificationClose.classList.add("notificationClose");
+
+		notificationClose.onclick = () => {
+			notification.style.animation = "notificationWidthOut cubic-bezier(.79,.14,.15,.86) " + notificationObject.travelTime.out + "s";
 			setTimeout(() => {
-				removeAllChildren(marquee);
-				marquee.remove();
-			}, leaveFor * 1000);
+				removeAllChildren(notification);
+				notification.remove();
+			}, notificationObject.travelTime.out * 1000);
 		};
 
 
-		var marqueeText = document.createElement("div");
-
-		marqueeText.innerHTML = message;
-
-		marqueeText.style.padding = "10px";
-
-		marqueeContent.appendChild(marqueeClose);
-		marqueeContent.appendChild(marqueeText);
-
-		marquee.appendChild(marqueeContent);
-		document.getElementById("notificationArea").appendChild(marquee);
+		var notificationText = document.createElement("div");
 
 
-		if (closeAfter != 0) {
+		// if text too long find a word wrap that will make it fit
+		notificationText.innerHTML = "<span>" + notificationObject.message + "</span>";
+
+		// -4 becuase of borders?
+		var widthOfNotificationBox = Math.round(window.innerWidth * 25 / 100) - 4;
+
+		var sizeTest = document.createElement("span");
+		sizeTest.innerHTML = notificationObject.message;
+		
+		var notifictionTextElements = [];
+		for (var i = 0; i < sizeTest.children.length; i++) {
+			notifictionTextElements.push(sizeTest.children[i].cloneNode(true));
+		}
+		// remove children
+		for (var i = sizeTest.children.length - 1; i >= 0; i--) {
+			sizeTest.children[i].remove();
+		}
+
+		notificationObject.message = sizeTest.innerText;
+
+		sizeTest.style.fontSize = "var(--notification-font-size)";
+		sizeTest.style.position = "absolute";
+		sizeTest.style.left = "0%";
+		sizeTest.style.top = "-1000%";
+
+		document.body.appendChild(sizeTest);
+
+		var widthOfText = sizeTest.offsetWidth;
+
+		if (widthOfText > widthOfNotificationBox) {
+
+			var col = 50;
+			while (true) {
+
+				var textToTest = [];
+
+				for (var i = 0, charsLength = notificationObject.message.length; i < charsLength; i += col) {
+					textToTest.push(notificationObject.message.substring(i, i + col));
+				}
+				
+
+				sizeTest.innerHTML = textToTest[0];
+				widthOfText = sizeTest.offsetWidth;
+
+				if (widthOfText + 50 < widthOfNotificationBox) {
+					console.log(textToTest);
+					notificationText.innerHTML = "<span>" + wordWrap(textToTest.join(""), col, "<br>") + "</span>";
+					
+
+					sizeTest.innerHTML = wordWrap(textToTest.join(""), col, "<br>");
+					widthOfText = sizeTest.offsetWidth;
+
+					if (widthOfText + 50 > widthOfNotificationBox) {
+						notificationText.innerHTML = "<span>" + textToTest.join("-<br>") + "</span>";
+					}
+
+					notifictionTextElements.forEach(element => {
+						notificationText.children[0].appendChild(element);
+					});
+
+					break;
+				}
+				else if (col == 0) break;
+				else col--;
+			}
+		}
+		sizeTest.remove();
+
+		notificationText.style.padding = "10px";
+		notificationText.style.marginTop = "10px";
+
+		notificationContent.appendChild(notificationClose);
+		notificationContent.appendChild(notificationText);
+
+		notification.appendChild(notificationContent);
+		document.getElementById("notificationArea").appendChild(notification);
+
+
+		if (notificationObject.closeAfter != 0) {
 			setTimeout(() => {
-				marqueeClose.click();
-			}, closeAfter * 1000);
+				notificationClose.click();
+			}, (notificationObject.travelTime.in + notificationObject.closeAfter) * 1000);
 		}
 	}
 
@@ -751,6 +855,7 @@
 	:root {
 		--main-button-border: 2px ridge rgb(117, 116, 122);
 		--main-button-border-color: rgb(117, 116, 122);
+		--notification-font-size: 18px;
 	}
 
 
@@ -806,9 +911,16 @@
       width: 100%;
       height: 100%;
       border-style: ridge;
+
+	  font-size: 16px;
+	  
     
       min-width: 100px;
     }
+
+	#submitOrderButton {
+		font-size: 16px;
+	}
     
 	button {
 		cursor: pointer;
@@ -909,6 +1021,8 @@
         background-color: white;
 
 		border-color: var(--main-button-border-color);
+
+		outline: none;
     }
 
     .numberContainer > :first-child {
@@ -1047,31 +1161,48 @@
 	}
 
 
-	@keyframes marqueeRightIn {
+	@keyframes notificationWidthIn {
 		0% {
-			right: 100%
+			width: 0%;
 		}
 		100% {
-			right: 0%
+			width: 25%;
 		}
 	}
 
-	@keyframes marqueeRightOut {
+	@keyframes notificationWidthOut {
 		0% {
-			right: 0%
+			width: 25%;
 		}
 		100% {
-			right: 100%
+			width: 0%;
 		}
+	}
+
+	.notification {
+		overflow: hidden;
+		font-size: var(--notification-font-size);
+		float: left;
+		max-width: 25%;
+		background-color: white;
+		position: relative;
+		width: 100%;
+		text-overflow: clip;
+		white-space: nowrap;
+	}
+
+	.notification > * {
+		font-size: var(--notification-font-size);
+	}
+
+	.notificationClose {
+		font-size: 24px;
+		font-weight: bold;
+		float: right;
+		margin-left: 100%;
+		margin-right: 5px;
+		cursor: pointer;
 	}
 	
-	@keyframes fadeOut {
-		0% {
-			opacity: 100%;
-		}
-		100% {
-			opacity: 0%
-		}
-	}
 	
 </style>

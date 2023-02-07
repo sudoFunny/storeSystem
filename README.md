@@ -1,8 +1,22 @@
-# storeSystem
-A store system with features like; point of sale system, manager panel, sale logs, and a way to display unfulfilled orders.
-<br><br>
+### Sections
+- [Story Behind this Project](#story-behind-this-project)
+- [Prerequisites](#prerequisites)
+- [In Progress](#in-progress)
+- [Planned for the Future](#planned-for-the-future)
 
-# **Prerequisites**
+<br />
+
+# Store System
+A store system with features like; point of sale system, manager panel, sale logs, and a way to display unfulfilled orders.
+
+<br />
+
+## Story Behind this Project
+I was sitting in a marketing class, and the teacher said something about how technology could make selling products better and keeping track of records easier. That teacher was also the leader of the school's DECA club, so he ran a store in the school to raise money for their club, this store sold all sorts of goodies like slushies, cookies, popcorn, ice coffee and more. The next day he used the school store as an example for something and at that point I thought to myself "I could be of use". The free time of the next few days was spent making a demo of sorts, I showed it to the teacher, and he liked the idea, so I continued the development.
+
+<br />
+
+## Prerequisites
 ### If you would like to play around with this project first you'll need the basic LAMP server and then do the following
 - Make mysql database named "salesData"
 - Create two tables "itemConfigs" and "orders"
@@ -31,7 +45,8 @@ A store system with features like; point of sale system, manager panel, sale log
 	```
 - You will also need an item config
 	- Go to the [Manager Panel](http://localhost/managerPanel/) and upload this [sample item config](https://github.com/sudoFunny/storeSystem/blob/main/.sampleItemConfig.json)... and now you're ready to go to the [order taker page](http://localhost/orderTaker/)
-<br>
+
+<br />
 
 ## In Progress
 - [x] Get sales data and display as table:
@@ -45,7 +60,8 @@ A store system with features like; point of sale system, manager panel, sale log
 
 - [ ] Remove reliance on "orderPools":
 	- Make "orderView" use the sales data's "completed" field
-<br>
+
+<br />
 
 ## Planned for the Future
 - [ ] Create a general config file:
@@ -64,3 +80,4 @@ A store system with features like; point of sale system, manager panel, sale log
 		- Sets up: mysql stuff... for now at least
 		
 		- One day add option for user of installer to choose weather they want the device to act as a Wi-Fi access point and router
+

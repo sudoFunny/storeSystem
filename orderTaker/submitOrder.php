@@ -76,6 +76,8 @@ if ($currentItemConfigVersion != null && $clientItemConfigVersion != "" && intva
 
 
 $parsedJson["id"] = $max["id"];
+// give unfilled order the version of the item config used to generate it
+$parsedJson["itemConfigVersion"] = $clientItemConfigVersion;
 
 array_push($unfilledJson, $parsedJson);
 

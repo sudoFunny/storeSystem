@@ -171,7 +171,7 @@ function updateOrderList (appendant) {
 				
                 // entryElement.innerHTML += keys[i] + ":";
 
-                descriptionList.innerHTML = "<dt>" + keys[i] + "</dt>";
+                descriptionList.innerHTML = "<dt>" + keys[i] + ":</dt>";
 
 
                 if (item[keys[i]].length > 0 && itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).price != undefined) {
@@ -185,7 +185,7 @@ function updateOrderList (appendant) {
 					
 			
                     // entryElement.innerHTML += "<br>&emsp;&emsp;" + value;
-					descriptionList.innerHTML += "<dd>" + value + "</dd>";
+					descriptionList.innerHTML += "<dd>" + itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).getChoiceWithDataName(value).displayName + "</dd>";
 
 
                 // get price per choice
@@ -208,7 +208,23 @@ function updateOrderList (appendant) {
 			}
 			else {
 				// entryElement.innerHTML += keys[i] + ": " + item[keys[i]];
-				if (typeof item[keys[i]] != "function") entryElementContentCell.innerHTML = keys[i] + ": " + item[keys[i]];
+				if (typeof item[keys[i]] != "function")	{
+
+					if (keys[i] === "name" || keys[i] === "item" || config.getItemByDataName(item[keys[i]]) != false) {
+						entryElementContentCell.innerHTML = keys[i] + ": " + itemObjectFromConfig.displayName;
+					}
+					else if (itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]) != false) {
+						if (itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).getChoiceWithDataName(item[keys[i]]) != false) {
+							entryElementContentCell.innerHTML = keys[i] + ": " + itemObjectFromConfig.interface.getInterfaceWithDataName(keys[i]).getChoiceWithDataName(item[keys[i]]).displayName;
+						}
+						else
+							entryElementContentCell.innerHTML = keys[i] + ": ";
+					}
+					else {
+						entryElementContentCell.innerHTML = keys[i] + ": " + item[keys[i]];
+					}
+				}
+				// if (typeof item[keys[i]] != "function") entryElementContentCell.innerHTML = keys[i] + ": " + item[keys[i]];
 
 
 				if (keys[i] === "name") {
@@ -552,7 +568,6 @@ function makeAddToOrderButton (item, appendant) {
             }
 
 
-
             if (!doNotPush) {
 				itemObject.remove = function() {
 					order.splice(order.indexOf(this), 1);
@@ -583,7 +598,7 @@ function fillOptions () {
 
 	updateMenuButton.onclick = async () => {
 		await getItemConfig();
-        sendNotification(0.5, 0.5, 5, "Menu updated");
+		sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "Menu updated"});
 	};
 
 
@@ -601,7 +616,7 @@ function fillOptions () {
 		var children = document.getElementById("notificationArea").children;
 
 		for (var childIndex = 0; childIndex < children.length; childIndex++) {
-			children[childIndex].style.animation = "fadeOut cubic-bezier(.79,.14,.15,.86) " + leaveFor + "s";
+			children[childIndex].style.animation = "notificationWidthOut cubic-bezier(.79,.14,.15,.86) " + leaveFor + "s";
 			children[childIndex].classList.add("removeMe");
 		}
 
@@ -630,4 +645,32 @@ function fillOptions () {
 
 	optionsContent.appendChild(updateMenuButton);
 	optionsContent.appendChild(clearAllNotificationsButton);
+}
+
+
+
+
+
+
+function wordWrap (str, cols, delimiter) {
+	var formatedString = '',
+		wordsArray = [];
+
+	wordsArray = str.split(' ');
+
+	formatedString = wordsArray[0];
+
+	for (var i = 1; i < wordsArray.length; i++) {
+		if (wordsArray[i].length > cols) {
+			formatedString += delimiter + wordsArray[i];
+		} else {
+			if (formatedString.length + wordsArray[i].length > cols) {
+				formatedString += delimiter + wordsArray[i];
+			} else {
+				formatedString += ' ' + wordsArray[i];
+			}
+		}
+	}
+
+	return formatedString;
 }
