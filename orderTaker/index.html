@@ -24,6 +24,13 @@
 
 <script>
 
+	/**
+	 * 
+	 * TODO
+	 * fix notifications
+	 * 
+	 */
+
 // important variables
 	var config = null, itemConfigVersion = null;
 
@@ -561,57 +568,65 @@
 			type: "POST",
 			dataType: "JSON",
 			success: function (response) {
-				config = JSON.parse(response.config);
-				itemConfigVersion = response.version;
 
-				/**
-				 * 
-				 * What do you think it does?
-				 * It does what it's named, else console.error and returns false.
-				 * 
-				 */
-				config.getItemByDataName = function (dataName) {
-					for (var i = 0; i < config.items.length; i++) {
+				response.forEach(row => {
+					config = JSON.parse(row.config);
+					itemConfigVersion = row.version;
 
-						if (config.items[i].dataName === dataName) {
-							return config.items[i];
-						}
-					}
+					/**
+					 * 
+					 * What do you think it does?
+					 * It does what it's named, else console.error and returns false.
+					 * 
+					 */
+					config.getItemByDataName = function (dataName) {
+						for (var i = 0; i < config.items.length; i++) {
 
-					return false;
-				}
-
-				for (var i = 0; i < config.items.length; i++) {
-
-					config.items[i].interface.getInterfaceWithDataName = function (dataName) {
-
-						for (var p = 0; p < this.length; p++) {
-							
-							if (this[p].dataName === dataName) {
-								return this[p];
+							if (config.items[i].dataName === dataName) {
+								return config.items[i];
 							}
 						}
 
 						return false;
 					}
 
-					for (var o = 0; o < config.items[i].interface.length; o++) {
+					for (var i = 0; i < config.items.length; i++) {
 
-						config.items[i].interface[o].getChoiceWithDataName = function (dataName) {
+						config.items[i].interface.getInterfaceWithDataName = function (dataName) {
 
-							if (this.choices != undefined) {
-								for (var p = 0; p < this.choices.length; p++) {
-									
-									if (this.choices[p].dataName === dataName) {
-										return this.choices[p];
-									}
+							for (var p = 0; p < this.length; p++) {
+								
+								if (this[p].dataName === dataName) {
+									return this[p];
 								}
 							}
 
 							return false;
 						}
+
+						for (var o = 0; o < config.items[i].interface.length; o++) {
+
+							config.items[i].interface[o].getChoiceWithDataName = function (dataName) {
+
+								if (this.choices != undefined) {
+									for (var p = 0; p < this.choices.length; p++) {
+										
+										if (this.choices[p].dataName === dataName) {
+											return this.choices[p];
+										}
+									}
+								}
+
+								return false;
+							}
+						}
 					}
-				}
+				});
+
+
+				// clear order just in case of conflict, for example: an item no longer being available
+				// I could check for any conflicts but whatever
+				order = [];
 
 				if (!layouts.includes(document.body.getAttribute("layout"))) {
 					goToSelectPage();
@@ -640,11 +655,41 @@
 			type: "POST",
 			dataType: "JSON",
 			data: {data: JSON.stringify(order), itemConfigVersion: itemConfigVersion},
-			success: function(response) {
+			success: async function(response) {
 
-				if (response.updateClientItemConfig) {
+				if (response.updateClientItemConfig == true) {
+					if (response.error != undefined) {
+						console.error(response.error);
+						// sendNotification({message: response.error});
+					}
+					
 					// Tell client new menu version is available, suggesting to update it by clicking "options > update menu button"
-					sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 0, message: "You are using an older menu <button style='padding: 5px;' onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification({travelTime: {in: 1, out: 1}, closeAfter: 2, message: 'Menu updated'}); button.parentElement.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>"});
+					// sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 0, message: "You are using an older menu <button style='padding: 5px;' onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification({travelTime: {in: 1, out: 1}, closeAfter: 2, message: 'Menu updated'}); button.parentElement.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>"});
+
+					document.getElementById("submitOrderButton").innerText = "Submit order";
+					await getItemConfig();
+
+					sendNotification({message: "Menu was out of date, please try to submit order again"});
+					return 0;
+				}
+
+
+
+				if (response.error != undefined) {
+					console.error(response.error);
+					// sendNotification({message: response.error});
+					document.getElementById("submitOrderButton").innerText = "Submit order";
+					return 0;
+				}
+
+				
+
+				if (response.id == 0) {
+					console.error("Error submitting order, please try again");
+					document.getElementById("submitOrderButton").innerText = "Submit order";
+					// submitOrder();
+					sendNotification({closeAfter: 10, message: "Error submitting order, please try again"});
+					return 0;
 				}
 				
 				// Clear order
@@ -694,7 +739,7 @@
 		}
 
 		if (!Object.keys(notificationObject).includes("closeAfter")) {
-			notificationObject["closeAfter"] = 2;
+			notificationObject["closeAfter"] = 3;
 			wasErrorInNotificationObject = true;
 		}
 
@@ -790,7 +835,6 @@
 				widthOfText = sizeTest.offsetWidth;
 
 				if (widthOfText + 50 < widthOfNotificationBox) {
-					console.log(textToTest);
 					notificationText.innerHTML = "<span>" + wordWrap(textToTest.join(""), col, "<br>") + "</span>";
 					
 
@@ -930,7 +974,7 @@
 		border: var(--main-button-border);
     }
     
-    // for checkbox css
+    /* for checkbox css */
     .checkbox {
       display: grid;
       grid-template-columns: 40px auto;
@@ -1144,11 +1188,11 @@
 	}
 
 	.summary::marker {
-		/* content: "→"; */
+		content: "";
 	}
 
 	.options[open] > .summary::marker {
-		/* content: "↓"; */
+		content: "";
 	}
 
 	.options[open] {

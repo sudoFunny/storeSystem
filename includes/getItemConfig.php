@@ -2,11 +2,13 @@
 include("../includes/mySQLConnection.php");
 $mySQLConnection = new MySQLConnection();
 
-if (is_numeric($_POST["itemConfigVersion"])) {
-	$response = $mySQLConnection->query("SELECT version, config FROM itemConfigs WHERE version=" . intval($_POST["itemConfigVersion"]) . ";");
+$wantedItemConfigVersion = json_decode($_POST["itemConfigVersion"]);
+
+if (is_array($wantedItemConfigVersion) && !empty($wantedItemConfigVersion) && $wantedItemConfigVersion != 0) {
+	$response = $mySQLConnection->query("SELECT version, config FROM itemConfigs WHERE version IN (" . join(", ", $wantedItemConfigVersion) . ");");
 }
 else
 	$response = $mySQLConnection->query("SELECT version, config FROM itemConfigs ORDER BY version DESC LIMIT 1;");
 
-echo json_encode($row = mysqli_fetch_assoc($response));
+echo json_encode(mysqli_fetch_all($response, MYSQLI_ASSOC));
 ?>

@@ -60,7 +60,7 @@ function changeLayout (query) {
 
         tr2.innerHTML = "<td id=\"itemList\" class=\"buttonGrid\"></td><td style=\"position: relative;\"><div class=\"orderListContainer\" style=\"max-height: " + screenHeight * .55 + "px; overflow: auto; top: 0; position: absolute; width: 100%;\"><table id=\"orderList\" style=\"width:99%; margin-left: auto;" + "\"></table></div><p id=\"totalPrice\" style=\"position: absolute; bottom: 0; right: 0;\">Total: $0.00</p></td>";
 
-        tr3.innerHTML = "<td colspan=\"2\" style=\"text-align: center\"><button id='submitOrderButton' onclick=\"submitOrder()\" style=\"margin-left: auto; margin-right: auto; width: 50%; height: 100%; min-height: 50px;\">Submit Order</button></td>";
+        tr3.innerHTML = "<td colspan=\"2\" style=\"text-align: center\"><button id='submitOrderButton' onclick=\"submitOrder()\" style=\"margin-left: auto; margin-right: auto; width: 50%; height: 100%; min-height: 50px;\">Submit order</button></td>";
 
         tbody.appendChild(tr1);
         tbody.appendChild(tr2);
@@ -597,8 +597,14 @@ function fillOptions () {
 	updateMenuButton.style.width = "100%";
 
 	updateMenuButton.onclick = async () => {
+		var currentItemConfigVersion = JSON.parse(JSON.stringify(itemConfigVersion));
+		goToSelectPage();
 		await getItemConfig();
-		sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "Menu updated"});
+
+		if (currentItemConfigVersion == itemConfigVersion) {
+			sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "Menu already up-to-date"});
+		}
+		else sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 5, message: "Menu updated"});
 	};
 
 
@@ -638,13 +644,22 @@ function fillOptions () {
 	};
 	
 
+// go to select view page (../)
+	var goToLandingPageButton = document.createElement("button");
+	goToLandingPageButton.style.width = "100%";
 
+	goToLandingPageButton.innerText = "Go to landing page";
+
+	goToLandingPageButton.onclick = () => {
+		window.location = "../";
+	};
 
 
 
 
 	optionsContent.appendChild(updateMenuButton);
 	optionsContent.appendChild(clearAllNotificationsButton);
+	optionsContent.appendChild(goToLandingPageButton);
 }
 
 

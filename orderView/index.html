@@ -38,7 +38,7 @@
 	var itemConfigVersionInUse = null;
 	var configs = {};
 
-	const minUpdateDelay = 1;
+	const minUpdateDelay = 2;
 
 
 	var toggleUpdatingInput = document.getElementById("toggleUpdatingInput");
@@ -73,13 +73,13 @@
 		if (toggleUpdatingInput.value === "notActive") {
 			toggleUpdatingInput.value = "active";
 			// element.innerText = "Stop Updating";
-			getUnfilledPool();
+			getUncompletedOrders();
 
 			if (updateDelayInput.value < minUpdateDelay) {
 				updateDelayInput.value = minUpdateDelay;
 			}
 
-			updateInterval = setInterval(getUnfilledPool, updateDelayInput.value * 1000);
+			updateInterval = setInterval(getUncompletedOrders, updateDelayInput.value * 1000);
 		}
 		else {
 			toggleUpdatingInput.value = "notActive";
@@ -91,29 +91,33 @@
 
 
 
-	async function updateView (orders) {
+	async function updateView (orders, fields) {
 		while (table.firstChild) {
 			table.removeChild(table.firstChild);
 		}
 
 		var maxCells = parseInt(maxCellsInput.getAttribute("data-value"));
 
-		var greatestOrderVersion = 0;
+	// pre for each order
 		var itemConfigVersionsNeeded = [];
-
+	
 		orders.forEach(function(order) {
-			if (!Object.keys(configs).includes(order.itemConfigVersion) && !itemConfigVersionsNeeded.includes(order.itemConfigVersion)) {
+			if (Number.isInteger(parseInt(order[fields.itemConfigVersion]))
+				&& !Object.keys(configs).includes(order[fields.itemConfigVersion])
+				&& !itemConfigVersionsNeeded.includes(order[fields.itemConfigVersion])) {
 				// get that item config and save in configs for later use
-				itemConfigVersionsNeeded.push(order.itemConfigVersion);
+				itemConfigVersionsNeeded.push(order[fields.itemConfigVersion]);
 			}
 		});
 
-		for (var versionIndex = 0; versionIndex < itemConfigVersionsNeeded.length; versionIndex++) {
-			await getItemConfig(itemConfigVersionsNeeded[versionIndex]);
-		}
 		
-
-
+		await getItemConfig(itemConfigVersionsNeeded);
+		// for (var versionIndex = 0; versionIndex < itemConfigVersionsNeeded.length; versionIndex++) {
+		// 	await getItemConfig(itemConfigVersionsNeeded[versionIndex]);
+		// }
+		
+	
+	// for each order
 		for (
 		var orderIndex = 0;
 		// if maxCells == 0: do loop till end, if not: do loop untill maxCells are used
@@ -124,41 +128,65 @@
 			var order = orders[orderIndex];
 
 			var div = document.createElement("div");
-			div.innerHTML = "<button ondblclick='deleteOrder(" + order.id + ")'>Remove order</button><span style=\"float: right;\">Order: " + order.id + "</span>";
+			div.innerHTML = "<button ondblclick='markOrderAsComplete(" + order[fields.recordId] + ")'>Mark as complete</button><span style=\"float: right;\" title=\"recordId: " + order[fields.recordId] + "\">" + (order[fields.orderId] == 0 ? "Record ID: " + order[fields.recordId] : "Order: " + order[fields.orderId]) + "</span>";
 			
 			div.classList.add("item");
-			div.id = order.id;
+			div.id = order[fields.orderId];
 
+		// if its not a number then use the greatest version available
 
-			itemConfigVersionInUse = order.itemConfigVersion;
+		// Note for a future feature? In php script, if any itemConfigVersion is null then grab the itemConfigVerion
+		// from the order above or below itself... pick the one that has the smallest dateTime difference, if same then
+		// use the newer order's itemConfigVersion (the record below itself). If no such entry, use the order before if
+		// it's dateTime difference isn't too large (say 24 hours), if no such entry, just continue with null.
+		// Be sure to find a way to tell the client that this this happened... or do they need to know?
+			if (!Number.isInteger(parseInt(order[fields.itemConfigVersion]))) {
+
+				itemConfigVersionInUse = 0;
+				Object.keys(configs).forEach(key => {
+					if (parseInt(key) > parseInt(itemConfigVersionInUse)) itemConfigVersionInUse = parseInt(key);
+				});
+
+				console.warn("The item config version is " + order[fields.itemConfigVersion] + " where recordId=" + order[fields.recordId] + "\nDefaulting to the greatest item config version available, version " + itemConfigVersionInUse);
+			}
+			else
+				itemConfigVersionInUse = order[fields.itemConfigVersion];
 
 			
+			order[fields.contents] = JSON.parse(order[fields.contents]);
 
-			delete order.itemConfigVersion;
-			delete order.id;
+
 
 			var pushNewOrder = true;
 
-			for (var itemIndex = 0; itemIndex < Object.keys(order).length; itemIndex++) {
-
-				var item = order[itemIndex];
-
-				var orderItemConfig = configs[itemConfigVersionInUse].getItemByDataName(item.name);
-
-				if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money" && Object.keys(order).length < 2) {
-					pushNewOrder = false;
-					continue;
-				}
-
-				if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money") {
-					continue;
-				}
-
-				var entryElement = document.createElement("p");
-
-				var keys = Object.keys(item);
+			for (var itemIndex = 0; itemIndex < Object.keys(order[fields.contents]).length; itemIndex++) {
 
 				try {
+					var item = order[fields.contents][itemIndex];
+
+					if (itemConfigVersionInUse < 1) {
+						itemConfigVersionInUse = 0;
+						Object.keys(configs).forEach(key => {
+							if (parseInt(key) > parseInt(itemConfigVersionInUse)) itemConfigVersionInUse = parseInt(key);
+						});
+					}
+
+					var orderItemConfig = configs[itemConfigVersionInUse].getItemByDataName(item.name);
+
+					if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money" && Object.keys(order).length < 2) {
+						pushNewOrder = false;
+						continue;
+					}
+
+					if (orderItemConfig.interface.getInterfaceWithDataName(item.name).type === "money") {
+						continue;
+					}
+
+					var entryElement = document.createElement("p");
+
+					var keys = Object.keys(item);
+
+				
 
 
 					for (var i = 0; i < keys.length; i++) {
@@ -225,28 +253,36 @@
 
 
 
-	function deleteOrder (id) {
+	function markOrderAsComplete (recordId) {
 		$.ajax({
-			url: "../orderPools/deleteOrderById.php",
+			url: "../includes/markOrderAsComplete.php",
 			type: "POST",
 			dataType: "JSON",
-			data: {id: id},
+			data: {recordId: recordId},
 			success: function(response) {
-				getUnfilledPool(); // for update after change
+				getUncompletedOrders(); // for update after change
 			}
 		});
-
-		// getUnfilledPool();
 	}
 
 
-	function getUnfilledPool () {
+	function getUncompletedOrders () {
 		$.ajax({
-			url: "../orderPools/getPool.php",
+			url: "../includes/getUncompletedOrders.php",
 			type: "POST",
 			dataType: "JSON",
-			data: {poolType: "unfilled"},
 			success: function(orders) {
+				// convert orders[0] array of column / field names to object with keys being the name
+				// of the column / field and the value being the index of that column / field in the data
+				var temp = orders[0];
+				temp = temp.reduce((a, v) => ({ ...a, [v]: v}), {});
+
+				orders[0].forEach(function(field) {
+					temp[field] = orders[0].indexOf(field);
+				});
+
+				orders[0] = temp;
+
 
 				var date = new Date();
 
@@ -261,8 +297,8 @@
 				if (seconds < 10) seconds = "0" + seconds.toString();
 				if (hours < 10) hours = "0" + hours.toString();
 				
-				if (orders != 0) {
-					updateView(orders);
+				if (orders[1].length != 0) {
+					updateView(orders[1], orders[0]);
 
 					document.getElementById("updatedTime").innerHTML = hours + ":" + minutes + ":" + seconds + " " + ampm;
 				}
@@ -277,66 +313,86 @@
 
 	function getItemConfig (wantedItemConfigVersion) {
 
+		if (wantedItemConfigVersion < 1) {
+			return 1;
+		}
+
 		return new Promise((resolve, reject) => {
+
+			if (!Array.isArray(wantedItemConfigVersion) && wantedItemConfigVersion != undefined) {
+				
+				wantedItemConfigVersion = new Array(wantedItemConfigVersion.toString());
+				wantedItemConfigVersion = wantedItemConfigVersion.map(x => parseInt(x));
+			}
+			else if (wantedItemConfigVersion != undefined) {
+				wantedItemConfigVersion = wantedItemConfigVersion.map(x => parseInt(x));
+			}
+			else wantedItemConfigVersion = [];
+
+
 
 			$.ajax({
 			url: "../includes/getItemConfig.php",
 			type: "POST",
 			dataType: "JSON",
-			data: {itemConfigVersion: wantedItemConfigVersion},
+			data: {itemConfigVersion: JSON.stringify(wantedItemConfigVersion)},
 			success: function (response) {
-				configs[response.version] = JSON.parse(response.config);
-				// configs.push({config: JSON.parse(response.config), itemConfigVersion: response.version});
-				itemConfigVersionInUse = response.version;
 
-				/**
-				 * 
-				 * What do you think it does?
-				 * It does what it's named, else console.error and returns false.
-				 * 
-				 */
-				configs[response.version].getItemByDataName = function (dataName) {
-					for (var i = 0; i < configs[response.version].items.length; i++) {
+				response.forEach(row => {
+					configs[row.version] = JSON.parse(row.config);
+					// configs.push({config: JSON.parse(response.config), itemConfigVersion: response.version});
+					itemConfigVersionInUse = row.version;
 
-						if (configs[response.version].items[i].dataName === dataName) {
-							return configs[response.version].items[i];
-						}
-					}
+					/**
+					 * 
+					 * What do you think it does?
+					 * It does what it's named, else console.error and returns false.
+					 * 
+					 */
+					configs[row.version].getItemByDataName = function (dataName) {
+						for (var i = 0; i < configs[row.version].items.length; i++) {
 
-					return false;
-				}
-
-				for (var i = 0; i < configs[response.version].items.length; i++) {
-
-					configs[response.version].items[i].interface.getInterfaceWithDataName = function (dataName) {
-
-						for (var p = 0; p < this.length; p++) {
-							
-							if (this[p].dataName === dataName) {
-								return this[p];
+							if (configs[row.version].items[i].dataName === dataName) {
+								return configs[row.version].items[i];
 							}
 						}
 
 						return false;
 					}
 
-					for (var o = 0; o < configs[response.version].items[i].interface.length; o++) {
+					for (var i = 0; i < configs[row.version].items.length; i++) {
 
-						configs[response.version].items[i].interface[o].getChoiceWithDataName = function (dataName) {
+						configs[row.version].items[i].interface.getInterfaceWithDataName = function (dataName) {
 
-							if (this.choices != undefined) {
-								for (var p = 0; p < this.choices.length; p++) {
-									
-									if (this.choices[p].dataName === dataName) {
-										return this.choices[p];
-									}
+							for (var p = 0; p < this.length; p++) {
+								
+								if (this[p].dataName === dataName) {
+									return this[p];
 								}
 							}
 
 							return false;
 						}
+
+						for (var o = 0; o < configs[row.version].items[i].interface.length; o++) {
+
+							configs[row.version].items[i].interface[o].getChoiceWithDataName = function (dataName) {
+
+								if (this.choices != undefined) {
+									for (var p = 0; p < this.choices.length; p++) {
+										
+										if (this.choices[p].dataName === dataName) {
+											return this.choices[p];
+										}
+									}
+								}
+
+								return false;
+							}
+						}
 					}
-				}
+				});
+				
 				resolve();
 			}
 			});
@@ -495,6 +551,15 @@
 
 
 
+	// go to select view page (../)
+		var goToLandingPageButton = document.createElement("button");
+		goToLandingPageButton.style.width = "100%";
+
+		goToLandingPageButton.innerText = "Go to landing page";
+
+		goToLandingPageButton.onclick = () => {
+			window.location = "../";
+		};
 
 
 		optionsTable.appendChild(lastUpdatedRow);
@@ -503,6 +568,7 @@
 		optionsTable.appendChild(maxCellsRow);
 
 		optionsContent.appendChild(optionsTable);
+		optionsContent.appendChild(goToLandingPageButton);
 
 	}
 </script>
@@ -651,11 +717,11 @@
 	}
 
 	.summary::marker {
-		/* content: "→"; */
+		content: "";
 	}
 
 	.options[open] > .summary::marker {
-		/* content: "↓"; */
+		content: "";
 	}
 
 	.options[open] {

@@ -1,14 +1,9 @@
-<?php
-include("../includes/mySQLConnection.php");
-$mySQLConnection = new MySQLConnection();
-?>
-
 <!DOCTYPE html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Manager Panel</title>
 </head>
-<body onload="init()">
+<body>
 
 	<div id="container" style="margin-top: 100px;">
 		
@@ -21,9 +16,9 @@ $mySQLConnection = new MySQLConnection();
 				<td colspan=2><button class="thicc button" onclick="modal.enable(); modal.showGetSalesData();" style="font-size: 16px; padding: 10px 10px;">Get sales data</button></td>
 			</tr>
 	
-			<tr>
+			<!-- <tr>
 				<td colspan=2><button class="thicc button" ondblclick="flushPool()" style="font-size: 16px; padding: 10px 10px;">Remove all orders yet to be filled</button></td>
-			</tr>
+			</tr> -->
 		</table>
 
 		<table style="margin-left: auto; margin-right: auto; text-align: center;" class="leaveMeAlone">
@@ -60,6 +55,13 @@ $mySQLConnection = new MySQLConnection();
 		</table>
 	</div>
 
+	<div id="optionsContainer">
+		<details class="options">
+			<summary class="summary">Options</summary>
+			<div id="optionsContent"></div>
+		</details>
+	</div>
+
 </body>
 </html>
 
@@ -69,9 +71,11 @@ $mySQLConnection = new MySQLConnection();
 <script src="functions.js"></script>
 <script>
 
-	function init () {
+	window.onload = () => {
+		fillOptions();
+
 		document.getElementById("uploadNewItemConfig").addEventListener("change", handleFileSelect, false);
-	}
+	};
 
 
 
@@ -84,7 +88,7 @@ $mySQLConnection = new MySQLConnection();
 	var table = document.getElementById("table");
 
 
-
+	/*
 	function flushPool () {
 		if (confirm("Are you sure you want to remove all orders yet to be filled?") == true) {
 			$.ajax({
@@ -98,6 +102,7 @@ $mySQLConnection = new MySQLConnection();
 			});
 		}
 	}
+	*/
 
 
 	// function deleteSalesData () {
@@ -459,5 +464,85 @@ $mySQLConnection = new MySQLConnection();
 
 	.backgroundAnimated {
 		animation: fade 5s ease-in-out;
+	}
+
+	/* table, th, td { */
+	.printTable {
+		width: 100%;
+		border: 2px solid;
+		border-collapse: collapse;
+		border-style: ridge;
+		padding: 2px;
+	}
+
+	.printTable > tr {
+		border: 2px solid;
+		border-style: ridge;
+		padding: 2px;
+	}
+
+	.printTable > tr > td {
+		border: 2px solid;
+		border-style: ridge;
+		padding: 2px;
+	}
+
+
+
+	#optionsContainer {
+		position: fixed;
+		bottom: 0px;
+		right: 0px;
+		padding: 5px;
+		z-index: 9999;
+		background-color: white;
+	}
+
+
+	.options {
+		border: var(--main-button-border);
+		padding: 0.5em 0.5em 0;
+	}
+
+	.options > *:not(.summary) > * {
+		font-size: 16px;
+	}
+
+	.options > *:not(.summary) > button {
+		padding: 6px;
+		margin-bottom: 10px;
+	}
+
+	.options > *:not(.summary) > :last-child {
+		margin-bottom: 0px;
+	}
+
+	.summary {
+		font-weight: bold;
+		margin: -0.5em -0.5em 0;
+		padding: 0.5em;
+
+		font-size: 18px;
+
+		cursor: pointer;
+		/* list-style: none; */
+		text-align: center;
+	}
+
+	.summary::marker {
+		content: "";
+	}
+
+	.options[open] > .summary::marker {
+		content: "";
+	}
+
+	.options[open] {
+		padding: 0.5em;
+	}
+
+	.options[open] .summary {
+		border-bottom: var(--main-button-border);
+		margin-bottom: 0.5em;
 	}
 </style>

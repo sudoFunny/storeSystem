@@ -5,14 +5,26 @@ $mySQLConnection = new MySQLConnection();
 $fromDate = $_POST["fromDate"];
 $toDate = $_POST["toDate"];
 
-// 	$fromDate = "2022-12-24 13:59:43";
-// 	$toDate = "2022-12-29 13:59:41";
-
 // ini_set('display_errors', '1');
 // ini_set('display_startup_errors', '1');
 // error_reporting(E_ALL);
 
-$response = $mySQLConnection->query("SELECT itemConfigVersion, contents FROM orders WHERE dateTime>='" . $fromDate . "' AND dateTime<='" . $toDate . "';");
+// Note for a future feature? In php script, if any itemConfigVersion is null then grab the itemConfigVerion
+// from the order above or below itself... pick the one that has the smallest dateTime difference, if same then
+// use the newer order's itemConfigVersion (the record below itself). If no such entry, use the order before if
+// it's dateTime difference isn't too large (say 24 hours), if no such entry, just continue with null.
+// Be sure to find a way to tell the client that this this happened... or do they need to know?
+
+// $fields = ["recordId", "itemConfigVersion", "contents"];
+
+// $response = $mySQLConnection->query("SELECT " . join(", ", $fields) . " FROM orders WHERE dateTime>='" . $_POST["fromDate"] . "' AND dateTime<='" . $_POST["toDate"] . "';");
+
+// echo "[" . json_encode($fields) . "," . json_encode(mysqli_fetch_all($response)) . "]";
+
+
+
+
+$response = $mySQLConnection->query("SELECT recordId, itemConfigVersion, contents FROM orders WHERE dateTime>='" . $fromDate . "' AND dateTime<='" . $toDate . "';");
 
 $rows = [];
 $versions = [];
@@ -23,7 +35,9 @@ if (mysqli_num_rows($response) != 0) {
 		array_push($rows, $row);
 
 		if (!in_array($row["itemConfigVersion"], $versions)) {
-			array_push($versions, $row["itemConfigVersion"]);
+			if (!is_null($row["itemConfigVersion"]) || $row["itemConfigVersion"] != "") {
+				array_push($versions, $row["itemConfigVersion"]);
+			}
 		}
 	}
 }

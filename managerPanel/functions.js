@@ -252,47 +252,67 @@ function createTemplate (config) {
 function addSalesDataToTemplates (templates, salesData) {
 
 
-	salesData.forEach(order => {
+	// salesData.forEach(order => {
+	for (var orderIndex = 0; orderIndex < salesData.length; orderIndex++) {
+		var order = salesData[orderIndex];
 
-		order.contents.forEach(item => {
+		if (order.itemConfigVersion < 1 || order.itemConfigVersion == "") {
+			console.warn("Skipping order where recordId=" + order.recordId + " because item config version is \"" + order.itemConfigVersion + "\"");
+			console.log(order);
+			alert("WARNING, skipping (not counting) an order because:\nSomething is wrong with the order's item config version, this order will not be used in the generated table, I'm just not 100% sure where to put it so I'm leaving it out. However, you may choose to manually add it if you can understand the following data.\n\nOrder with recordId=" + order.recordId + " has an item config version of \"" + order.itemConfigVersion + "\"\n\nOrder data:\n" + JSON.stringify(order, null, 4));
+			continue;
+		}
 
-			// find item in correct template and increment its quantity
-			for (var templateEntryIndex = 0; templateEntryIndex < templates[order.itemConfigVersion].length; templateEntryIndex++) {
+		if (order.contents == null) {
+			console.error("Order contents empty. order where recordId=" + order.recordId);
+			console.log(order);
+			alert("An order's contents is empty which shouldn't be possible so please let someone know\n\norder where recordId=" + order.recordId);
+			continue;
+		}
 
-				var entry = templates[order.itemConfigVersion][templateEntryIndex];
+		try {
+			order.contents.forEach(item => {
 
-				if (item.name === entry.itemDataName && Object.keys(item).includes(entry.dataName)) {
+				// find item in correct template and increment its quantity
+				for (var templateEntryIndex = 0; templateEntryIndex < templates[order.itemConfigVersion].length; templateEntryIndex++) {
+
+					var entry = templates[order.itemConfigVersion][templateEntryIndex];
+
+					if (item.name === entry.itemDataName && Object.keys(item).includes(entry.dataName)) {
 
 
-					if (Array.isArray(entry.dataNameValue)) {
+						if (Array.isArray(entry.dataNameValue)) {
 
-						if (item[entry.dataName].sort().join(' ') === entry.dataNameValue.sort().join(' ')) {
+							if (item[entry.dataName].sort().join(' ') === entry.dataNameValue.sort().join(' ')) {
 
+								if (item.quantity == undefined) { // basically for interface.type = money
+									entry.quantity += parseInt(item[entry.dataName]);
+								}
+								else
+									entry.quantity += parseInt(item.quantity);
+							}
+						}
+						else if (item[entry.dataName] === entry.dataNameValue) {
 							if (item.quantity == undefined) { // basically for interface.type = money
 								entry.quantity += parseInt(item[entry.dataName]);
 							}
 							else
 								entry.quantity += parseInt(item.quantity);
 						}
-					}
-					else if (item[entry.dataName] === entry.dataNameValue) {
-						if (item.quantity == undefined) { // basically for interface.type = money
-							entry.quantity += parseInt(item[entry.dataName]);
-						}
-						else
-							entry.quantity += parseInt(item.quantity);
-					}
-					// basically for interface.type = money
-					else if (item.name === entry.dataName) {
+						// basically for interface.type = money
+						else if (item.name === entry.dataName) {
 
-						if (entry.type === "money") {
-							entry.quantity += parseInt(item[entry.dataName]);
+							if (entry.type === "money") {
+								entry.quantity += parseInt(item[entry.dataName]);
+							}
 						}
 					}
 				}
-			}
-		});
-	});
+			});
+		} catch (error) {
+			alert("Something happened\n\nerror message: " + error.message);
+		}
+	}// );
 
 	return templates;
 }
@@ -406,16 +426,71 @@ function convertToSQLDateTime (inputDate) {
 
 
 
+function dateFromFormat (formatText, date) {
+	// var locale = (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
+	// year
+	formatText = formatText.replaceAll("%y", date.toLocaleTimeString(undefined, {year: "2-digit"}).split(",")[0]);
+	formatText = formatText.replaceAll("%Y", date.toLocaleTimeString(undefined, {year: "numeric"}).split(",")[0]);
 
-function getCurrentItemConfig () {
-	$.ajax({
-        url: "getCurrentItemConfig.php",
-        type: "POST",
-        dataType: "JSON",
-        success: function(itemConfig) {
-			itemConfig.config = JSON.parse(itemConfig.config);
+	// month
+	formatText = formatText.replaceAll("%m", date.toLocaleTimeString(undefined, {month: "2-digit"}).split(",")[0]);
+	formatText = formatText.replaceAll("%B", date.toLocaleTimeString(undefined, {month: "long"}).split(" ")[0]);
+	formatText = formatText.replaceAll("%b", date.toLocaleTimeString(undefined, {month: "short"}).split(",")[0]);
 
-			return itemConfig;
-		}
-	});
+	// weekday
+	formatText = formatText.replaceAll("%A", date.toLocaleTimeString(undefined, {weekday: "long"}).split(" ")[0]);
+	formatText = formatText.replaceAll("%a", date.toLocaleTimeString(undefined, {weekday: "short"}).split(" ")[0]);
+
+	// day
+	formatText = formatText.replaceAll("%d", date.toLocaleTimeString(undefined, {day: "2-digit"}).split(",")[0]);
+
+	// hour
+	formatText = formatText.replaceAll("%H", date.toLocaleTimeString(undefined, {hour: "2-digit", hour12: false}));
+	formatText = formatText.replaceAll("%I", date.toLocaleTimeString(undefined, {hour: "2-digit", hour12: true}).split(" ")[0]);
+
+	// minute
+	formatText = formatText.replaceAll("%M", date.toLocaleTimeString(undefined, {minute: "2-digit"}));
+				
+	// second
+	formatText = formatText.replaceAll("%S", date.toLocaleTimeString(undefined, {second: "2-digit"}));
+				
+	// am pm
+	formatText = formatText.replaceAll("%p", date.toLocaleTimeString(undefined, {hour: "2-digit", hour12: true}).split(" ")[1].toLowerCase());
+	formatText = formatText.replaceAll("%P", date.toLocaleTimeString(undefined, {hour: "2-digit", hour12: true}).split(" ")[1].toUpperCase());
+				
+	// time zone
+	formatText = formatText.replaceAll("%Z", date.toLocaleDateString(undefined, {day:'2-digit',timeZoneName: 'long' }).substring(4).match(/\b(\w)/g).join(''));
+
+	// other
+	formatText = formatText.replaceAll("%%", "%");
+
+	// Quick Options
+	formatText = formatText.replaceAll("%F", date.toLocaleString());
+	formatText = formatText.replaceAll("%D", date.toLocaleDateString());
+	formatText = formatText.replaceAll("%T", date.toLocaleTimeString());
+	formatText = formatText.replaceAll("%U", date.toUTCString());
+	formatText = formatText.replaceAll("%s", date.toISOString());
+	formatText = formatText.replaceAll("%L", convertDateTimeToHTMLFormat(date));
+
+	return formatText;
+}
+
+
+
+function fillOptions () {
+	var optionsContent = document.getElementById("optionsContent");
+
+// go to select view page (../)
+	var goToLandingPageButton = document.createElement("button");
+	goToLandingPageButton.style.width = "100%";
+
+	goToLandingPageButton.innerText = "Go to landing page";
+
+	goToLandingPageButton.onclick = () => {
+		window.location = "../";
+	};
+
+
+
+	optionsContent.appendChild(goToLandingPageButton);
 }

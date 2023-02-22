@@ -51,15 +51,15 @@ I was sitting in a marketing class, and the teacher said something about how tec
 ## In Progress
 - [x] Get sales data and display as table:
 	- Feature found in manager panel
-	
-- [ ] Just rewrite everything
 
-- [ ] Change how we get "orderId":
+- [x] Change how we get "orderId":
 	- Remove reliance on "RecordClass.php" by getting "orderId" from sales data's "completed" field
-	- Remove [RecordClass.php](https://github.com/sudoFunny/storeSystem/blob/main/includes/RecordClass.php)
+	- Remove RecordClass.php
 
-- [ ] Remove reliance on "orderPools":
+- [x] Remove reliance on "orderPools":
 	- Make "orderView" use the sales data's "completed" field
+
+- [ ] Allow editing of sales table in the manager panel
 
 <br />
 
@@ -68,6 +68,7 @@ I was sitting in a marketing class, and the teacher said something about how tec
 	- Make a general config file for mysql user information
 
 - [ ] Create user friendly way of making item configs
+    - Include a preview mode for what order taker will see and maybe what the sales data will look like (since item config has "save" property for some items)
 
 - [ ] Create a way to report shrinkage 
 	> shrinkage: product loss due to; spills, theft, product perishment, etc...

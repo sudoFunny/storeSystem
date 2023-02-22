@@ -46,14 +46,21 @@ class Modal {
 		title.style.textAlign = "center";
 		title.style.marginTop = "50px";
 
-		var description = document.createElement("p");
-		description.innerText = "Get sales data";
+
+		// section discription
+		var dateInputDiscription = document.createElement("h3");
+		dateInputDiscription.innerHTML = "Select a range of dates<hr style='max-width: 75%;'>";
+
+		dateInputDiscription.style.textAlign = "center";
+		dateInputDiscription.style.marginTop = "50px";
 
 
 
 
 // from div
 		var fromInputContainer = document.createElement("div");
+
+		fromInputContainer.style.textAlign = "center";
 
 // from date input
 		var labelForFromDateTimeInput = document.createElement("label");
@@ -63,8 +70,27 @@ class Modal {
 		var fromDateTimeInput = document.createElement("input");
 		fromDateTimeInput.type = "datetime-local";
 		fromDateTimeInput.id = "fromDateTimeInput";
-		fromDateTimeInput.step = 1; // show seconds will show... bit odd but ok I guess :/
+		fromDateTimeInput.step = 1; // so seconds will show... bit odd but ok I guess :/
 		fromDateTimeInput.max = convertDateTimeToHTMLFormat(new Date(Date.now()));
+
+		fromDateTimeInput.onchange = () => {
+			// update custom time format
+			fromDateTimeInput.dispatchEvent(new Event("input"));
+		};
+		fromDateTimeInput.oninput = () => {
+			// update custom time format
+			customDateTimeFormatInput.dispatchEvent(new Event("input"));
+		};
+		
+
+		try {
+			if (window.salesDataDate.localFromDate < new Date(Date.now())) {
+				fromDateTimeInput.value = convertDateTimeToHTMLFormat(window.salesDataDate.localFromDate);
+			}
+		} catch (error) {
+			console.error("Could not find sales data from time in window");
+		}
+		
 
 
 		fromDateTimeInput.classList.add("dateTimeInput");
@@ -160,6 +186,9 @@ class Modal {
 // to div
 		var toInputContainer = document.createElement("div");
 
+		toInputContainer.style.textAlign = "center";
+		toInputContainer.style.marginTop = "15px";
+
 // to datetime input
 		var labelForToDateTimeInput = document.createElement("label");
 		labelForToDateTimeInput.htmlFor = "toDateTimeInput";
@@ -168,8 +197,25 @@ class Modal {
 		var toDateTimeInput = document.createElement("input");
 		toDateTimeInput.type = "datetime-local";
 		toDateTimeInput.id = "toDateTimeInput";
-		toDateTimeInput.step = 1; // show seconds will show... bit odd but ok I guess :/
+		toDateTimeInput.step = 1; // so seconds will show... bit odd but ok I guess :/
 		toDateTimeInput.max = convertDateTimeToHTMLFormat(new Date(Date.now()));
+
+		toDateTimeInput.onchange = () => {
+			// update custom time format
+			toDateTimeInput.dispatchEvent(new Event("input"));
+		};
+		toDateTimeInput.oninput = () => {
+			// update custom time format
+			customDateTimeFormatInput.dispatchEvent(new Event("input"));
+		};
+
+		try {
+			if (window.salesDataDate.localToDate < new Date(Date.now())) {
+				toDateTimeInput.value = convertDateTimeToHTMLFormat(window.salesDataDate.localToDate);
+			}
+		} catch (error) {
+			console.error("Could not find sales data to time in window");
+		}
 
 		toDateTimeInput.classList.add("dateTimeInput");
 
@@ -263,24 +309,42 @@ class Modal {
 
 // Table(s) options
 
+		var addionalOptionsDiscription = document.createElement("h3");
+		addionalOptionsDiscription.innerHTML = "Select addional options<hr style='max-width: 75%;'>";
+
+		addionalOptionsDiscription.style.textAlign = "center";
+		addionalOptionsDiscription.style.marginTop = "50px";
+
+
 		var tableOptionsContainer = document.createElement("div");
-		tableOptionsContainer.style.marginTop = "25px";
 		
 
 		var tableOptionsTable = document.createElement("table");
 		tableOptionsTable.style.borderCollapse = "collapse";
 		tableOptionsTable.style.textAlign = "center";
+		tableOptionsTable.style.marginLeft = "auto";
+		tableOptionsTable.style.marginRight = "auto";
 
 		var tableOptionsTableOptionsTr = document.createElement("tr");
 		tableOptionsTableOptionsTr.innerHTML = "\
 		<td></td>\
-		<td style='padding-left: 20px; padding-right: 20px;'>" + wordWrap("Apply when displaying", 5, "<br>") + "</td>\
+		<td style='padding-left: 20px; padding-right: 20px;'>" + wordWrap("Apply when displaying or printing", 5, "<br>") + "</td>\
 		<td style='padding-left: 20px; padding-right: 20px;'>" + wordWrap("Apply when downloading", 5, "<br>") + "</td>\
 		";
 
-
 		tableOptionsTable.appendChild(tableOptionsTableOptionsTr);
 
+
+		var useTrueDefault = false;
+
+		try {
+			// get default table options
+			var tableOptions = JSON.parse(localStorage.getItem("tableOptions"));
+			if (tableOptions == null) throw new Error;
+		} catch (error) {
+			useTrueDefault = true;
+		}
+		
 
 		var tableOptionsTemplate = [
 			{
@@ -288,7 +352,7 @@ class Modal {
 				"options": [
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.convertToDollar.when.displaying,
 						"attributes":
 						{
 							"data-table-options": "",
@@ -298,7 +362,7 @@ class Modal {
 					},
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.convertToDollar.when.downloading,
 						"attributes":
 							{
 								"data-table-options": "",
@@ -313,7 +377,7 @@ class Modal {
 				"options": [
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.displayTotalColumn.when.displaying,
 						"attributes":
 						{
 							"data-table-options": "",
@@ -323,7 +387,7 @@ class Modal {
 					},
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.displayTotalColumn.when.downloading,
 						"attributes":
 							{
 								"data-table-options": "",
@@ -338,7 +402,7 @@ class Modal {
 				"options": [
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.displayTotalRow.when.displaying,
 						"attributes":
 						{
 							"data-table-options": "",
@@ -348,7 +412,7 @@ class Modal {
 					},
 					{
 						"id": "",
-						"checked": true,
+						"checked": useTrueDefault ? true : tableOptions.displayTotalRow.when.downloading,
 						"attributes":
 							{
 								"data-table-options": "",
@@ -356,6 +420,32 @@ class Modal {
 								"data-table-options-when": "downloading"
 							}
 					}
+				]
+			},
+			{
+				"label": "Show date and time",
+				"options": [
+					{
+						"id": "",
+						"checked": useTrueDefault ? true : tableOptions.displayDateTime.when.displaying,
+						"attributes":
+						{
+							"data-table-options": "",
+							"data-table-options-apply": "displayDateTime",
+							"data-table-options-when": "displaying",
+							"onclick": "if (this.checked) document.getElementById('customDateTimeFormatContainer').style.display = 'table'; else document.getElementById('customDateTimeFormatContainer').style.display = 'none';"
+						}
+					}
+					// ,{
+					// 	"id": "",
+					// 	"checked": useTrueDefault ? true : tableOptions.displayDateTime.when.downloading,
+					// 	"attributes":
+					// 		{
+					// 			"data-table-options": "",
+					// 			"data-table-options-apply": "displayDateTime",
+					// 			"data-table-options-when": "downloading"
+					// 		}
+					// }
 				]
 			}
 		];
@@ -367,7 +457,7 @@ class Modal {
 
 			var entry = document.createElement("tr");
 
-		// label
+			// label
 			entry.innerHTML += "<td><span style='float: right;'>" + optionTemplate.label + "</span></td>";
 			
 
@@ -379,9 +469,19 @@ class Modal {
 
 				optionElement.type = "checkbox";
 				optionElement.checked = entryOption.checked;
+
+				optionElement.style.cursor = "pointer";
 				
 				Object.keys(entryOption.attributes).forEach(attributeKey => {
 					optionElement.setAttribute(attributeKey, entryOption.attributes[attributeKey]);
+
+					// to activate any onclick event listeners
+					setTimeout(() => {
+						optionElement.click();
+						optionElement.click();
+					}, 50);
+					// find better way ^
+					
 				});
 
 				optionElementCell.appendChild(optionElement);
@@ -395,6 +495,203 @@ class Modal {
 		
 		tableOptionsContainer.appendChild(tableOptionsTable);
 
+
+// Custom date time format
+
+		var customDateTimeFormat = document.createElement("div");
+		customDateTimeFormat.id = "customDateTimeFormatContainer";
+		customDateTimeFormat.innerHTML = "<h4 style='text-align: center;'>Make a date time format<hr style='max-width: 75%;'></h4>";
+
+		customDateTimeFormat.style.display = "table";
+		customDateTimeFormat.style.marginLeft = "auto";
+		customDateTimeFormat.style.marginRight = "auto";
+
+
+		// input
+		var customDateTimeFormatInput = document.createElement("input");
+		customDateTimeFormatInput.id = "customDateTimeFormatInput";
+		customDateTimeFormatInput.type = "text";
+		customDateTimeFormatInput.classList.add("dateTimeInput");
+
+		customDateTimeFormatInput.value = useTrueDefault ? "%F" : tableOptions.displayDateTime.customDateTimeFormat;
+		
+		customDateTimeFormatInput.oninput = () => {
+
+			var masterText = "<b>Preview</b><br>Sales from:<br>%from%<br>To:<br>%to%";
+			var customFormatText = customDateTimeFormatInput.value;
+			
+			var dateRange = [fromDateTimeInput.value, toDateTimeInput.value];
+
+			for (var dateRangeIndex = 0; dateRangeIndex < dateRange.length; dateRangeIndex++) {
+				var date = new Date(dateRange[dateRangeIndex]);
+
+				if (date == "Invalid Date") {
+					dateRange[dateRangeIndex] = "Invalid Date";
+					continue;
+				}
+
+				dateRange[dateRangeIndex] = dateFromFormat(customFormatText, date);
+			}
+
+			masterText = masterText.replaceAll("%from%", dateRange[0]);
+			masterText = masterText.replaceAll("%to%", dateRange[1]);
+
+			customDateTimeFormatPreview.innerHTML = masterText;
+
+			
+		};
+
+		
+
+		// preview
+		var customDateTimeFormatPreview = document.createElement("p");
+
+		// just read it
+		customDateTimeFormatInput.dispatchEvent(new Event("input"));
+
+		// customDateTimeFormatPreview.innerText = new Date().toLocaleString();
+
+		// syntax ref
+		var customDateTimeFormatSyntax = document.createElement("details");
+		customDateTimeFormatSyntax.innerHTML = "<summary style='cursor: pointer;'>Format syntax</summary><p></p>";
+
+		customDateTimeFormatSyntax.children[1].innerHTML = "\
+		Quick Options<br>\
+			&emsp;%F - Auto format date and time based on location<br>\
+			&emsp;%D - Auto format date based on location<br>\
+			&emsp;%T - Auto format time based on location<br>\
+			&emsp;%U - Date in UTC time<br>\
+			&emsp;%s - Date in ISO 8601<br>\
+			&emsp;%L - Date in HTML format<br>\
+		<br>\
+		Seconds<br>\
+			&emsp;%S - Second of the minute<br>\
+		<br>\
+		Minutes<br>\
+			&emsp;%M - Minute of the hour<br>\
+		<br>\
+		Hours<br>\
+			&emsp;%I - Hour of the day (12 hour)<br>\
+			&emsp;%H - Hour of the day (24 hour)<br>\
+		<br>\
+		Days<br>\
+			&emsp;%d - Day of the month<br>\
+			&emsp;%A - Full weekday (Monday)<br>\
+			&emsp;%a - Abbreviated weekday (Mon)<br>\
+		<br>\
+		Months<br>\
+			&emsp;%m - Numerical month of year (09)<br>\
+			&emsp;%B - Name of the month (February)<br>\
+			&emsp;%b - Abbreviated name of the month (Feb)<br>\
+		<br>\
+		Years<br>\
+			&emsp;%y - Last two digits of year (23)<br>\
+			&emsp;%Y - Full year (2023)<br>\
+		<br>\
+		Others<br>\
+			&emsp;%p - Lower case am or pm<br>\
+			&emsp;%P - Upper case AM or PM<br>\
+			&emsp;%Z - Abbreviated time zone (EST, PST, UTC...)<br>\
+			&emsp;%% - The % symbol<br>\
+		";
+
+
+		customDateTimeFormat.appendChild(customDateTimeFormatInput);
+		customDateTimeFormat.appendChild(customDateTimeFormatPreview);
+		customDateTimeFormat.appendChild(customDateTimeFormatSyntax);
+
+
+		tableOptionsContainer.appendChild(customDateTimeFormat);
+
+
+// save addional options
+		var saveAddionalOptionsDiscription = document.createElement("h3");
+		saveAddionalOptionsDiscription.style.textAlign = "center";
+		saveAddionalOptionsDiscription.style.marginTop = "50px";
+
+		saveAddionalOptionsDiscription.innerHTML = "Save addional options<hr style='max-width: 75%'>";
+		
+		// container and buttons
+		var saveAddionalOptionsContainer = document.createElement("div");
+		saveAddionalOptionsContainer.style.textAlign = "center";
+
+
+		var saveTableOptionsButton = document.createElement("button");
+
+		saveTableOptionsButton.innerHTML = "Set current choices as default";
+		saveTableOptionsButton.classList.add("button");
+		
+		saveTableOptionsButton.onclick = () => {
+			var tableOptionsElements = document.querySelectorAll("[data-table-options]");
+		
+			var tableOptions = {
+				"convertToDollar": {
+					"when": {
+						"displaying": false,
+						"downloading": false
+					}
+				},
+				"displayTotalColumn": {
+					"when": {
+						"displaying": false,
+						"downloading": false
+					}
+				},
+				"displayTotalRow": {
+					"when": {
+						"displaying": false,
+						"downloading": false
+					}
+				},
+				"displayDateTime": {
+					"when": {
+						"displaying": false,
+						"downloading": false
+					},
+					"customDateTimeFormat": "%F"
+				}
+			};
+					
+			tableOptionsElements.forEach(optionElement => {
+				tableOptions[optionElement.getAttribute("data-table-options-apply")].when[optionElement.getAttribute("data-table-options-when")] = optionElement.checked;
+		
+				if (optionElement.getAttribute("data-table-options-apply") == "displayDateTime" && optionElement.checked) {
+					tableOptions.displayDateTime.customDateTimeFormat = document.getElementById("customDateTimeFormatInput").value;
+				}
+			});
+		
+		
+			localStorage.setItem("tableOptions", JSON.stringify(tableOptions));
+			saveTableOptionsButton.innerHTML = "Addional options saved";
+			setTimeout(() => {
+				saveTableOptionsButton.innerHTML = "Set current choices as default";
+			}, 2500);
+		};
+		
+		var resetTableOptionsButton = document.createElement("button");
+		
+		resetTableOptionsButton.innerHTML = "Reset current choices to true default";
+		resetTableOptionsButton.classList.add("button");
+		
+		resetTableOptionsButton.onclick = () => {
+			localStorage.removeItem("tableOptions");
+			
+			window.salesDataDate = {
+				localFromDate: new Date(document.getElementById("fromDateTimeInput").value),
+				localToDate: new Date(document.getElementById("toDateTimeInput").value)
+			};
+		
+			this.showGetSalesData();
+			resetTableOptionsButton.innerHTML = "Addional options reset";
+			setTimeout(() => {
+				resetTableOptionsButton.innerHTML = "Reset current choices to true default";
+			}, 2500);
+		};
+		
+		
+		saveAddionalOptionsContainer.appendChild(saveTableOptionsButton);
+		saveAddionalOptionsContainer.appendChild(document.createElement("br"));
+		saveAddionalOptionsContainer.appendChild(resetTableOptionsButton);
 
 
 // Submit button
@@ -428,7 +725,13 @@ class Modal {
 				return 0;
 			}
 
-			window.salesDataDate = {fromDate: convertToSQLDateTime(fromDate), toDate: convertToSQLDateTime(toDate)};
+			window.salesDataDate = {
+				fromDate: convertToSQLDateTime(fromDate),
+				toDate: convertToSQLDateTime(toDate),
+				localFromDate: fromDate,
+				localToDate: toDate,
+				customDateFormat: customDateTimeFormatInput.value
+			};
 
 			$.ajax({
 				url: "getSalesData.php",
@@ -444,20 +747,26 @@ class Modal {
 						var tableOptions = {
 							"convertToDollar": {
 								"when": {
-									"displaying": null,
-									"downloading": null
+									"displaying": false,
+									"downloading": false
 								}
 							},
 							"displayTotalColumn": {
 								"when": {
-									"displaying": null,
-									"downloading": null
+									"displaying": false,
+									"downloading": false
 								}
 							},
 							"displayTotalRow": {
 								"when": {
-									"displaying": null,
-									"downloading": null
+									"displaying": false,
+									"downloading": false
+								}
+							},
+							"displayDateTime": {
+								"when": {
+									"displaying": false,
+									"downloading": false
 								}
 							}
 						};
@@ -465,7 +774,7 @@ class Modal {
 						tableOptionsElements.forEach(optionElement => {
 							tableOptions[optionElement.getAttribute("data-table-options-apply")].when[optionElement.getAttribute("data-table-options-when")] = optionElement.checked;
 						});
-
+						
 						modal.displayTable(convertJsonSalesDataToTable(response), tableOptions);
 					}
 					else
@@ -479,12 +788,19 @@ class Modal {
 
 
 		this.content.appendChild(title);
-		this.content.appendChild(description);
+
+		this.content.appendChild(dateInputDiscription);
 
 		this.content.appendChild(fromInputContainer);
 		this.content.appendChild(toInputContainer);
 
+
+		this.content.appendChild(addionalOptionsDiscription);
 		this.content.appendChild(tableOptionsContainer);
+
+		this.content.appendChild(saveAddionalOptionsDiscription);
+		this.content.appendChild(saveAddionalOptionsContainer);
+		
 
 		this.content.appendChild(submitContainer);
 
@@ -509,20 +825,16 @@ class Modal {
 
 	displayTable (tables, tableOptions) {
 
+		
 		this.clearContent();
-
 
 		var title = document.createElement("h2");
 		title.innerText = "Sales Data";
 		title.style.textAlign = "center";
 		title.style.marginTop = "50px";
 
-		var description = document.createElement("p");
-		description.innerText = "Display sales data";
-
 		this.content.appendChild(title);
-		this.content.appendChild(description);
-
+		
 
 		// make new object from tables
 		var downloadTables = JSON.parse(JSON.stringify(tables));
@@ -531,21 +843,64 @@ class Modal {
 	// for each table
 		Object.keys(tables).forEach(tableVersion => {
 
-			var tableOptionsTr = document.createElement("tr");
-
 			
+			var tableOptionsTr = document.createElement("tr");
+			var tableOptionsCell = document.createElement("td");
+			tableOptionsCell.colSpan = "9999";
+				
+
+				
 			// display table version if there are more than one
 			if (Object.keys(tables).length > 1) {
-				var tableVersionCell = document.createElement("td");
-				tableVersionCell.innerText = "Item config version: " + tableVersion;
-
-				tableOptionsTr.appendChild(tableVersionCell);
+				tableOptionsCell.innerText = "Item config version: " + tableVersion;
 			}
 
 
+			var printButton = document.createElement("button");
+			printButton.innerText = "Print table";
+			printButton.classList.add("button");
+			printButton.style.float = "right";
+
+			printButton.onclick = (event) => {
+
+				var table = event.target.parentElement.parentElement.parentElement;
+
+				var printTable = document.createElement("table");
+				printTable.classList.add("printTable");
+
+				for (var rowIndex = 1; rowIndex < table.children.length; rowIndex++) {
+					printTable.appendChild(table.children[rowIndex].cloneNode());
+					printTable.children[rowIndex - 1].innerHTML = table.children[rowIndex].innerHTML;
+				}
+
+				// hide all elements
+				for (var elementIndex = 0; elementIndex < document.body.children.length; elementIndex++) {
+					if (!["SCRIPT", "STYLE"].includes(document.body.children[elementIndex].tagName)) {
+						document.body.children[elementIndex].style.display = "none";
+					}
+				}
+
+				// make description and options for this view
+				// <div id="printOrEditDescription"><h2>Print and or edit table</h2><p>You can edit the quantity field by simply clicking on the cell and start typing, when you are done just press enter, and it will automatically process the new values.<br>Note that you can use math operators in the editable fields, however "+" and "-" are the only ones allowed.<br>Example: "1+2"</p><button class="button">Print</button></div>
+
+				document.body.appendChild(printTable);
+				window.print();
+					
+				printTable.remove();
+
+				// unhide all elements
+				for (var elementIndex = 0; elementIndex < document.body.children.length; elementIndex++) {
+					if (!["SCRIPT", "STYLE"].includes(document.body.children[elementIndex].tagName)) {
+						document.body.children[elementIndex].style.display = "block";
+					}
+				}
+			};
+
+
 			var downloadButton = document.createElement("button");
-			downloadButton.innerText = "Click me to download the following table";
+			downloadButton.innerText = "Download table";
 			downloadButton.classList.add("button");
+			downloadButton.style.float = "right";
 
 
 			downloadButton.setAttribute("data-table-data", JSON.stringify(downloadTables[tableVersion].map(entry => entry.slice(1, entry.length))));
@@ -557,7 +912,7 @@ class Modal {
 				var table = JSON.parse(event.target.getAttribute("data-table-data"));
 				var csvTable = "";
 
-			// make table header
+				// make table header
 				csvTable += JSON.parse(event.target.getAttribute("data-table-header")).join(",") + "\n";
 
 
@@ -568,7 +923,7 @@ class Modal {
 							row[rowValueIndex] = "\"" + row[rowValueIndex] + "\"";
 						}
 					}
-					
+
 					csvTable += row.join(",") + "\n";
 
 				});
@@ -578,25 +933,30 @@ class Modal {
 				a.href = URL.createObjectURL(new Blob([csvTable]));
 
 
-				var fileName = prompt("Name this file", "Sales data from " + window.salesDataDate.fromDate + " to " + window.salesDataDate.fromDate + ".csv");
+				var locale = (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.language;
+                var options = {timeZoneName: "short"};
 
-				if (fileName === "") fileName = "Sales data from " + window.salesDataDate.fromDate + " to " + window.salesDataDate.fromDate + ".csv";
 
-				if (fileName.substring(fileName.length-4, fileName.length) != ".csv") fileName += ".csv";
+				var fileName = prompt("Name this file", "Sales data from " + window.salesDataDate.localFromDate.toLocaleString(locale, options).replaceAll("/", "_").replaceAll(":", "_") + " to " + window.salesDataDate.localToDate.toLocaleString(locale, options).replaceAll("/", "_").replaceAll(":", "_") + ".csv");
 
-                a.setAttribute("download", fileName);
-                a.style.display = "none";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+				if (fileName === "") fileName = "Sales data from " + window.salesDataDate.localFromDate.toLocaleString(locale, options).replaceAll("/", "_").replaceAll(":", "_") + " to " + window.salesDataDate.localToDate.toLocaleString(locale, options).replaceAll("/", "_").replaceAll(":", "_") + ".csv";
+
+				if (fileName.substring(fileName.length - 4, fileName.length) != ".csv") fileName += ".csv";
+
+				a.setAttribute("download", fileName);
+				a.style.display = "none";
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
 
 			};
 
-			var downloadTableCell = document.createElement("td");
-			downloadTableCell.colSpan = "9999";
-			
-			downloadTableCell.appendChild(downloadButton);
-			tableOptionsTr.appendChild(downloadTableCell);
+
+			tableOptionsCell.appendChild(downloadButton);
+			tableOptionsCell.appendChild(printButton);
+
+
+			tableOptionsTr.appendChild(tableOptionsCell);
 
 
 
@@ -615,7 +975,7 @@ class Modal {
 
 
 
-		// apply table options
+			// apply table options
 			// when displaying
 			tables[tableVersion].forEach(entry => {
 
@@ -670,17 +1030,48 @@ class Modal {
 						}
 					}
 				}
-			});
 
+
+				// display date time
+				if (tableOptions.displayDateTime.when.displaying) {
+
+					if (table.getAttribute("displayDateTime") != 1) {
+						var dateTimeElement = document.createElement("tr");
+
+
+						var masterText = "Sales from:<br>%from%<br>To:<br>%to%";
+						var customFormatText = window.salesDataDate.customDateFormat;
+						
+						var dateRange = [window.salesDataDate.localFromDate, window.salesDataDate.localToDate];
+
+						for (var dateRangeIndex = 0; dateRangeIndex < dateRange.length; dateRangeIndex++) {
+							var date = new Date(dateRange[dateRangeIndex]);
+
+							if (date == "Invalid Date") {
+								dateRange[dateRangeIndex] = "Invalid Date";
+								continue;
+							}
+							
+							dateRange[dateRangeIndex] = dateFromFormat(customFormatText, date);
+						}
+
+						masterText = masterText.replaceAll("%from%", dateRange[0]);
+						masterText = masterText.replaceAll("%to%", dateRange[1]);
+
+						dateTimeElement.innerHTML = "<td colspan=9999>" + masterText + "</td>";
+						
+						table.appendChild(dateTimeElement);
+						table.setAttribute("displayDateTime", 1);
+					}
+				}
+			});
 
 
 			// when downloading
 			downloadTables[tableVersion].forEach(entry => {
 
-
 				if (tableOptions.displayTotalColumn.when.downloading) {
-
-					
+		
 					// this is horrific and so is everything about this table but soon I'll be changing how I store sales data and I'll have to rewrite so whatever
 					if (!JSON.parse(downloadButton.getAttribute("data-table-header")).includes("Total")) {
 						downloadButton.setAttribute("data-table-header", JSON.stringify(["Item title", "Quantity", "Price", "Total"]));
@@ -696,7 +1087,7 @@ class Modal {
 
 
 				if (tableOptions.displayTotalRow.when.downloading) {
-					
+						
 					if (downloadTables[tableVersion][downloadTables[tableVersion].length - 1][1] != "Total") {
 						// add new row
 
@@ -708,7 +1099,6 @@ class Modal {
 					}
 
 
-
 					if (tableOptions.displayTotalColumn.when.downloading) {
 						if (entry[0].type != "money") {
 
@@ -717,7 +1107,6 @@ class Modal {
 
 						downloadTables[tableVersion][downloadTables[tableVersion].length - 1][4] = parseInt(entry[4]) + parseInt(downloadTables[tableVersion][downloadTables[tableVersion].length - 1][4]);
 					}
-					
 				}
 
 
@@ -739,15 +1128,13 @@ class Modal {
 				tables[tableVersion][tables[tableVersion].length - 1][4] = centToDollar(tables[tableVersion][tables[tableVersion].length - 1][4]);
 			}
 
-		// for total row at bottom
+			
+			// for total row at bottom
 			if (tableOptions.convertToDollar.when.downloading && tableOptions.displayTotalRow.when.downloading) {
 				downloadTables[tableVersion][downloadTables[tableVersion].length - 1][4] = centToDollar(downloadTables[tableVersion][downloadTables[tableVersion].length - 1][4]);
 			}
 
-
-
 			downloadButton.setAttribute("data-table-data", JSON.stringify(downloadTables[tableVersion].map(entry => entry.slice(1, entry.length))));
-
 
 
 			tables[tableVersion].forEach(tableRow => {
@@ -756,7 +1143,6 @@ class Modal {
 
 				for (var tableCellIndex = 1; tableCellIndex < tableRow.length; tableCellIndex++) {
 					var td = document.createElement("td");
-
 
 					
 					if (tableCellIndex > 2 && tableRow[tableCellIndex][0] === "$") {
@@ -778,11 +1164,11 @@ class Modal {
 			});
 			
 			
+			if (table.getAttribute("displayDateTime") == 1) table.insertBefore(tableHeader, table.children[1]);
+			else table.insertBefore(tableHeader, table.children[0]);
 
-			table.insertBefore(tableHeader, table.children[0]);
-
-			
 			table.insertBefore(tableOptionsTr, table.children[0]);
+
 			this.content.appendChild(table);
 		});
 	}
@@ -821,11 +1207,7 @@ class Modal {
 		title.style.textAlign = "center";
 		title.style.marginTop = "50px";
 
-		var description = document.createElement("p");
-		description.innerText = "Edit current item config";
-
 		this.content.appendChild(title);
-		this.content.appendChild(description);
 
 
 
@@ -950,21 +1332,20 @@ class Modal {
 		};
 
 
-		// getCurrentItemConfig();
 		$.ajax({
-			url: "getCurrentItemConfig.php",
+			url: "../includes/getItemConfig.php",
 			type: "POST",
 			dataType: "JSON",
 			success: function(itemConfig) {
-				itemConfig.config = JSON.parse(itemConfig.config);
+				itemConfig[0].config = JSON.parse(itemConfig[0].config);
 
-				// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig));
+				// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig[0]));
 
-				var lines = JSON.stringify(itemConfig.config, null, 4);
+				var lines = JSON.stringify(itemConfig[0].config, null, 4);
 
 				currentItemConfigTextArea.innerHTML = lines;
 
-				currentItemConfigVersion.innerText = "Current item config version: " + itemConfig.version;
+				currentItemConfigVersion.innerText = "Current item config version: " + itemConfig[0].version;
 
 
 
@@ -1060,17 +1441,17 @@ class Modal {
 		resetButton.onclick = () => {
 			if (confirm("Are you sure you want to remove all text then get and paste the current item config?") == true) {
 				$.ajax({
-					url: "getCurrentItemConfig.php",
+					url: "../includes/getItemConfig.php",
 					type: "POST",
 					dataType: "JSON",
 					success: function(itemConfig) {
-						itemConfig.config = JSON.parse(itemConfig.config);
+						itemConfig[0].config = JSON.parse(itemConfig[0].config);
 
-						// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig));
+						// textArea.setAttribute("data-config-origin", JSON.stringify(itemConfig[0]));
 		
-						currentItemConfigTextArea.value = JSON.stringify(itemConfig.config, null, 4);
+						currentItemConfigTextArea.value = JSON.stringify(itemConfig[0].config, null, 4);
 		
-						currentItemConfigVersion.innerText = "Current item config version: " + itemConfig.version;
+						currentItemConfigVersion.innerText = "Current item config version: " + itemConfig[0].version;
 
 						cursorPositionElement.innerText = "Ln 1, Col 1";
 
@@ -1332,6 +1713,11 @@ function updateGetSalesData (dateTimeElement, instruction) {
 	var date = new Date(dateNow);
 
 	dateTimeElement.value = convertDateTimeToHTMLFormat(date);
+
+
+	// anytime this updates, trigger input event
+	dateTimeElement.dispatchEvent(new Event("input"));
+
 }
 
 
