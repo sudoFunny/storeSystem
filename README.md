@@ -70,6 +70,10 @@ I was sitting in a marketing class, and the teacher said something about how tec
 - [ ] Create user friendly way of making item configs
     - Include a preview mode for what order taker will see and maybe what the sales data will look like (since item config has "save" property for some items)
 
+- [ ] Add specials in some way, Example: Movie Theater Speacial, $2 for soda and popcorn but only on fridays or every other friday or a one time thing.
+
+- [ ] Sales date back up to file
+
 - [ ] Create a way to report shrinkage 
 	> shrinkage: product loss due to; spills, theft, product perishment, etc...
 	

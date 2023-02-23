@@ -7,7 +7,7 @@
 </head>
 <body>
 
-	<p>Double click to remove an order</p>
+	<p>Single click to remove an order</p>
 	
 	<div class="container" id="table" style="margin-top: 50px; margin-bottom: 250px;">
 		<p>No data loaded</p>
@@ -128,7 +128,7 @@
 			var order = orders[orderIndex];
 
 			var div = document.createElement("div");
-			div.innerHTML = "<button ondblclick='markOrderAsComplete(" + order[fields.recordId] + ")'>Mark as complete</button><span style=\"float: right;\" title=\"recordId: " + order[fields.recordId] + "\">" + (order[fields.orderId] == 0 ? "Record ID: " + order[fields.recordId] : "Order: " + order[fields.orderId]) + "</span>";
+			div.innerHTML = "<button onclick='markOrderAsComplete(" + order[fields.recordId] + ")'>Mark as complete</button><span style=\"float: right;\" title=\"recordId: " + order[fields.recordId] + "\">" + (order[fields.orderId] == 0 ? "Record ID: " + order[fields.recordId] : "Order: " + order[fields.orderId]) + "</span>";
 			
 			div.classList.add("item");
 			div.id = order[fields.orderId];
