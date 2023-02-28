@@ -61,6 +61,8 @@ I was sitting in a marketing class, and the teacher said something about how tec
 
 - [ ] Allow editing of sales table in the manager panel
 
+- [ ] Fix order taker notification styles
+
 <br />
 
 ## Planned for the Future

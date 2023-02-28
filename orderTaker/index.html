@@ -666,10 +666,27 @@
 					// Tell client new menu version is available, suggesting to update it by clicking "options > update menu button"
 					// sendNotification({travelTime: {in: 0.5, out: 0.5}, closeAfter: 0, message: "You are using an older menu <button style='padding: 5px;' onclick=\"async function something_IDK_XD (button) {await getItemConfig(); sendNotification({travelTime: {in: 1, out: 1}, closeAfter: 2, message: 'Menu updated'}); button.parentElement.parentElement.parentElement.children[0].click();} something_IDK_XD(this);\">Update menu</button>"});
 
+
+
+
+
+		// FIX AND REMOVE!		work around... not good because what if an item doesn't exist in the newest item config?
+					var currentOrder = JSON.parse(JSON.stringify(order));
+
+
 					document.getElementById("submitOrderButton").innerText = "Submit order";
 					await getItemConfig();
 
-					sendNotification({message: "Menu was out of date, please try to submit order again"});
+
+
+		// FIX AND REMOVE!		work around... not good because what if an item doesn't exist in the newest item config?
+					order = currentOrder
+					submitOrder();
+					return 0;
+
+
+					
+					sendNotification({message: "Menu was out of date, please try to submit order again", closeAfter: 0});
 					return 0;
 				}
 
